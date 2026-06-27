@@ -8,9 +8,9 @@ namespace LegalPortal.API.Models
         [DynamoDBHashKey]
         public string RequestID { get; set; } = string.Empty;
 
-        public int CaseID { get; set; }
+        public string CaseID { get; set; } = string.Empty;
 
-        public int RequestedByOfficialID { get; set; }
+        public string RequestedByOfficialID { get; set; } = string.Empty;
 
         public string DocumentType { get; set; } = string.Empty;
 
@@ -18,8 +18,20 @@ namespace LegalPortal.API.Models
 
         public string DeadlineDate { get; set; } = string.Empty;
 
+        public string Status { get; set; } = string.Empty;
+
         public string? FulfilledAt { get; set; }
 
+        public string? FulfilledByUserID { get; set; }
+
         public string? S3Key { get; set; }
+
+        public string? FileName { get; set; }
+
+        public long? FileSizeBytes { get; set; }
+
+        public string CreatedAt { get; set; } = string.Empty;
+
+        public string UpdatedAt { get; set; } = string.Empty;
     }
 }

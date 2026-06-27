@@ -5,13 +5,19 @@ import Badge from "../ui/Badge";
 const DashboardOverview = ({ onSelectCase, onViewChange }) => {
   const { cases, whistleblowerReports, categories, getPersonName } = useContext(GrievanceContext);
 
+  // Helper: check if a CategoryID belongs to a POSH/ICC-required category
+  const isPosh = (catId) => {
+    const cat = categories.find(c => String(c.CategoryID) === String(catId));
+    return cat?.RequiresICC === true;
+  };
+
   const totalCases = cases.length;
   const openCount = cases.filter(c => c.Status === "Open").length;
   const inProgressCount = cases.filter(c => c.Status === "In Progress").length;
   const underReviewCount = cases.filter(c => c.Status === "Under Review").length;
   const closedCount = cases.filter(c => c.Status === "Closed").length;
   const criticalCount = cases.filter(c => c.Priority === "Critical").length;
-  const poshCount = cases.filter(c => c.CategoryID === 8).length;
+  const poshCount = cases.filter(c => isPosh(c.CategoryID)).length;
   const wbOpenCount = whistleblowerReports.filter(r => r.Status !== "Closed").length;
 
   const statCards = [
@@ -141,7 +147,7 @@ const DashboardOverview = ({ onSelectCase, onViewChange }) => {
               <div key={c.CategoryID} style={{ marginBottom: 14 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 5 }}>
                   <span style={{ color: "var(--color-navy-dark)", fontWeight: 500 }}>
-                    {c.CategoryID === 8 ? "🔒" : "⚖️"} {c.CategoryName}
+                    {isPosh(c.CategoryID) ? "🔒" : "⚖️"} {c.CategoryName}
                   </span>
                   <span style={{ fontWeight: 700, color: "var(--color-navy)" }}>{c.count}</span>
                 </div>
@@ -149,7 +155,7 @@ const DashboardOverview = ({ onSelectCase, onViewChange }) => {
                   <div style={{
                     height: "100%",
                     borderRadius: 4,
-                    background: c.CategoryID === 8 
+                    background: isPosh(c.CategoryID) 
                       ? "linear-gradient(90deg, #A855F7, #C026D3)" 
                       : "linear-gradient(90deg, var(--color-blue), #60A5FA)",
                     width: `${c.percentage}%`,
@@ -194,7 +200,7 @@ const DashboardOverview = ({ onSelectCase, onViewChange }) => {
                   }}
                   className="recent-case-row"
                 >
-                  <span style={{ fontSize: 20, marginTop: 2 }}>{cat?.CategoryID === 8 ? "🔒" : "📄"}</span>
+                  <span style={{ fontSize: 20, marginTop: 2 }}>{isPosh(cat?.CategoryID) ? "🔒" : "📄"}</span>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{
                       fontSize: 12.5,

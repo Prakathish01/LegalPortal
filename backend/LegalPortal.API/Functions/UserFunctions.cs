@@ -27,30 +27,23 @@ namespace LegalPortal.API.Functions
             {
                 if (request.HttpMethod == "OPTIONS") return ResponseHelper.CreateOptionsResponse();
 
-                int? userId = null;
+                string? userId = null;
                 if (request.PathParameters != null && request.PathParameters.TryGetValue("id", out var val))
                 {
-                    if (int.TryParse(val, out var parsedId))
-                    {
-                        userId = parsedId;
-                    }
-                    else
-                    {
-                        return ResponseHelper.CreateErrorResponse(400, "User ID must be an integer.");
-                    }
+                    userId = val;
                 }
 
                 switch (request.HttpMethod)
                 {
                     case "GET":
-                        if (!userId.HasValue)
+                        if (string.IsNullOrEmpty(userId))
                         {
                             var list = await _userService.GetAllAsync();
                             return ResponseHelper.CreateOkResponse("Users retrieved successfully", list);
                         }
                         else
                         {
-                            var item = await _userService.GetByIdAsync(userId.Value);
+                            var item = await _userService.GetByIdAsync(userId);
                             return ResponseHelper.CreateOkResponse("User retrieved successfully", item);
                         }
 
@@ -61,15 +54,15 @@ namespace LegalPortal.API.Functions
                         return ResponseHelper.CreateCreatedResponse("User created successfully", created);
 
                     case "PUT":
-                        if (!userId.HasValue) return ResponseHelper.CreateErrorResponse(400, "User ID is required.");
+                        if (string.IsNullOrEmpty(userId)) return ResponseHelper.CreateErrorResponse(400, "User ID is required.");
                         var updateDto = JsonSerializer.Deserialize<UpdateUserDto>(request.Body ?? string.Empty, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                         if (updateDto == null) return ResponseHelper.CreateErrorResponse(400, "Invalid request body.");
-                        var updated = await _userService.UpdateAsync(userId.Value, updateDto);
+                        var updated = await _userService.UpdateAsync(userId, updateDto);
                         return ResponseHelper.CreateOkResponse("User updated successfully", updated);
 
                     case "DELETE":
-                        if (!userId.HasValue) return ResponseHelper.CreateErrorResponse(400, "User ID is required.");
-                        await _userService.DeleteAsync(userId.Value);
+                        if (string.IsNullOrEmpty(userId)) return ResponseHelper.CreateErrorResponse(400, "User ID is required.");
+                        await _userService.DeleteAsync(userId);
                         return ResponseHelper.CreateOkResponse("User deleted successfully", (object?)null);
 
                     default:

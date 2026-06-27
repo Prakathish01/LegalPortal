@@ -8,7 +8,7 @@ export const loginAsUser = createAsyncThunk(
   "auth/loginAsUser",
   async (userId, { getState, rejectWithValue }) => {
     const { grievance } = getState();
-    const user = grievance.users.find((u) => u.UserID === Number(userId));
+    const user = grievance.users.find((u) => String(u.UserID) === String(userId));
     if (!user) {
       return rejectWithValue("Could not find that employee record.");
     }
@@ -39,7 +39,7 @@ export const loginAsStaff = createAsyncThunk(
         return rejectWithValue("This account does not have Staff Portal access.");
       }
       
-      const officialId = Number(official.OfficialID || official.UserID);
+      const officialId = String(official.OfficialID || official.UserID);
       sessionStorage.setItem(SESSION_KEY, String(officialId));
       sessionStorage.setItem(SESSION_TYPE_KEY, "official");
       return {
@@ -61,12 +61,12 @@ export const restoreSession = createAsyncThunk(
     const savedType = sessionStorage.getItem(SESSION_TYPE_KEY);
     if (savedId && savedType) {
       if (savedType === "user") {
-        const u = grievance.users.find((usr) => usr.UserID === Number(savedId));
+        const u = grievance.users.find((usr) => String(usr.UserID) === String(savedId));
         if (u && isUserRole(u.RoleID)) {
           return { user: { ...u, personType: "user" }, portalType: "user", portalMode: "user" };
         }
       } else if (savedType === "official") {
-        const o = grievance.officials.find((off) => off.OfficialID === Number(savedId));
+        const o = grievance.officials.find((off) => String(off.OfficialID) === String(savedId));
         if (o) {
           const type = resolvePortalType(o.RoleID);
           return {

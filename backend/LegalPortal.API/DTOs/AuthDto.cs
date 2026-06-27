@@ -8,13 +8,13 @@ namespace LegalPortal.API.DTOs
 
     public class LoginResponse
     {
-        public int UserID { get; set; }
+        public string UserID { get; set; } = string.Empty;
         public string EmployeeID { get; set; } = string.Empty;
         public string FullName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public string Phone { get; set; } = string.Empty;
         public string Department { get; set; } = string.Empty;
-        public int RoleID { get; set; }
+        public string RoleID { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;
         public string CreatedDate { get; set; } = string.Empty;
         public string PersonType { get; set; } = string.Empty; // "official" or "user"

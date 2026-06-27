@@ -1,13 +1,12 @@
 using Amazon.DynamoDBv2.DataModel;
-using LegalPortal.API.Helpers;
 
 namespace LegalPortal.API.Models
 {
     [DynamoDBTable("ep59WhistleblowerReports")]
     public class WhistleblowerReport
     {
-        [DynamoDBHashKey(typeof(IntToStringConverter))]
-        public int ReportID { get; set; }
+        [DynamoDBHashKey]
+        public string ReportID { get; set; } = string.Empty;
         
         public string ReferenceNumber { get; set; } = string.Empty;
         

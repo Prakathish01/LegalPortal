@@ -28,7 +28,7 @@ const AdvocateDashboard = ({ onSelectCase, setActiveView }) => {
   }, [notes, officialId]);
 
   const myAssignments = useMemo(
-    () => assignments.filter((a) => Number(a.AssignedToUserID) === Number(officialId)),
+    () => assignments.filter((a) => String(a.AssignedToUserID) === String(officialId)),
     [assignments, officialId]
   );
 
@@ -77,10 +77,10 @@ const AdvocateDashboard = ({ onSelectCase, setActiveView }) => {
       counts[c.CategoryID] = (counts[c.CategoryID] || 0) + 1;
     });
     return Object.keys(counts).map((catId) => {
-      const cat = categories.find((x) => x.CategoryID === Number(catId));
+      const cat = categories.find((x) => String(x.CategoryID) === String(catId));
       const count = counts[catId];
       return {
-        id: Number(catId),
+        id: String(catId),
         name: cat?.CategoryName || "Other Consultation",
         count,
         percentage: myCases.length > 0 ? (count / myCases.length) * 100 : 0

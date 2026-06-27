@@ -2,8 +2,8 @@ namespace LegalPortal.API.DTOs
 {
     public class NotificationDto
     {
-        public int NotificationID { get; set; }
-        public int UserID { get; set; }
+        public string NotificationID { get; set; } = string.Empty;
+        public string UserID { get; set; } = string.Empty;
         public string Message { get; set; } = string.Empty;
         public bool IsRead { get; set; }
         public string CreatedDate { get; set; } = string.Empty;
@@ -11,7 +11,7 @@ namespace LegalPortal.API.DTOs
 
     public class CreateNotificationDto
     {
-        public int UserID { get; set; }
+        public string UserID { get; set; } = string.Empty;
         public string Message { get; set; } = string.Empty;
     }
 }

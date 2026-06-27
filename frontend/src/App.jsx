@@ -88,7 +88,7 @@ function AdminLayout() {
   // Parse path: /admin/dashboard, /admin/cases, /admin/cases/:id, /admin/users, /admin/whistleblower
   const pathParts = location.pathname.split("/").filter(Boolean); // ["admin", "view", "id"]
   const activeView = pathParts[1] || "dashboard";
-  const selectedCaseId = activeView === "cases" && pathParts[2] ? Number(pathParts[2]) : null;
+  const selectedCaseId = activeView === "cases" && pathParts[2] ? pathParts[2] : null;
 
   const getViewLabel = () => {
     switch (activeView) {
@@ -167,9 +167,9 @@ function AdvocateLayout() {
   // Parse path: /advocate/dashboard, /advocate/assignments, /advocate/assignments/:id, /advocate/profile
   const pathParts = location.pathname.split("/").filter(Boolean); // ["advocate", "view", "id"]
   const activeView = pathParts[1] || "dashboard";
-  const selectedCaseId = (activeView === "assignments" || activeView === "chats") && pathParts[2] ? Number(pathParts[2]) : null;
+  const selectedCaseId = (activeView === "assignments" || activeView === "chats") && pathParts[2] ? pathParts[2] : null;
 
-  const assignedCount = assignments.filter((a) => Number(a.AssignedToUserID) === Number(officialId)).length;
+  const assignedCount = assignments.filter((a) => String(a.AssignedToUserID) === String(officialId)).length;
 
   const getViewLabel = () => {
     if (activeView === "dashboard") return "My Dashboard";
@@ -260,7 +260,7 @@ function UserLayout() {
   if (activeView === "cases") {
     if (pathParts[2]) {
       activeView = "case-detail";
-      selectedCaseId = Number(pathParts[2]);
+      selectedCaseId = pathParts[2];
     } else {
       activeView = "my-cases";
     }

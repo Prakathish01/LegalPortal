@@ -2,7 +2,7 @@ namespace LegalPortal.API.DTOs
 {
     public class WhistleblowerReportDto
     {
-        public int ReportID { get; set; }
+        public string ReportID { get; set; } = string.Empty;
         public string ReferenceNumber { get; set; } = string.Empty;
         public string Subject { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;

@@ -27,30 +27,23 @@ namespace LegalPortal.API.Functions
             {
                 if (request.HttpMethod == "OPTIONS") return ResponseHelper.CreateOptionsResponse();
 
-                int? caseId = null;
+                string? caseId = null;
                 if (request.PathParameters != null && request.PathParameters.TryGetValue("caseId", out var val))
                 {
-                    if (int.TryParse(val, out var parsedId))
-                    {
-                        caseId = parsedId;
-                    }
-                    else
-                    {
-                        return ResponseHelper.CreateErrorResponse(400, "Case ID must be an integer.");
-                    }
+                    caseId = val;
                 }
 
                 switch (request.HttpMethod)
                 {
                     case "GET":
-                        if (!caseId.HasValue)
+                        if (string.IsNullOrEmpty(caseId))
                         {
                             var list = await _caseService.GetAllAsync();
                             return ResponseHelper.CreateOkResponse("Complaints retrieved successfully", list);
                         }
                         else
                         {
-                            var item = await _caseService.GetByIdAsync(caseId.Value);
+                            var item = await _caseService.GetByIdAsync(caseId);
                             return ResponseHelper.CreateOkResponse("Complaint retrieved successfully", item);
                         }
 
@@ -61,15 +54,15 @@ namespace LegalPortal.API.Functions
                         return ResponseHelper.CreateCreatedResponse("Complaint created successfully", created);
 
                     case "PUT":
-                        if (!caseId.HasValue) return ResponseHelper.CreateErrorResponse(400, "Case ID is required.");
+                        if (string.IsNullOrEmpty(caseId)) return ResponseHelper.CreateErrorResponse(400, "Case ID is required.");
                         var updateDto = JsonSerializer.Deserialize<UpdateCaseDto>(request.Body ?? string.Empty, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                         if (updateDto == null) return ResponseHelper.CreateErrorResponse(400, "Invalid request body.");
-                        var updated = await _caseService.UpdateAsync(caseId.Value, updateDto);
+                        var updated = await _caseService.UpdateAsync(caseId, updateDto);
                         return ResponseHelper.CreateOkResponse("Complaint updated successfully", updated);
 
                     case "DELETE":
-                        if (!caseId.HasValue) return ResponseHelper.CreateErrorResponse(400, "Case ID is required.");
-                        await _caseService.DeleteAsync(caseId.Value);
+                        if (string.IsNullOrEmpty(caseId)) return ResponseHelper.CreateErrorResponse(400, "Case ID is required.");
+                        await _caseService.DeleteAsync(caseId);
                         return ResponseHelper.CreateOkResponse("Complaint deleted successfully", (object?)null);
 
                     default:

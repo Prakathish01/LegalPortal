@@ -82,7 +82,7 @@ def retrieve_policies_from_knowledge_base(query_text, max_results=3):
             knowledgeBaseId=knowledge_base_id,
             retrievalQuery={"text": query_text},
             retrievalConfiguration={
-                "vectorSearchConfiguration": {
+                "managedSearchConfiguration": {
                     "numberOfResults": max_results
                 }
             }
@@ -308,14 +308,14 @@ def clean_and_parse_json(text):
     cleaned = re.sub(r"```$", "", cleaned, flags=re.IGNORECASE).strip()
     
     try:
-        return json.loads(cleaned)
+        return json.loads(cleaned, strict=False)
     except json.JSONDecodeError:
         # Fallback: Find matching boundaries of the JSON object
         start_idx = cleaned.find("{")
         end_idx = cleaned.rfind("}")
         if start_idx != -1 and end_idx != -1:
             try:
-                return json.loads(cleaned[start_idx:end_idx + 1])
+                return json.loads(cleaned[start_idx:end_idx + 1], strict=False)
             except json.JSONDecodeError:
                 pass
         raise ValueError(f"Failed to parse JSON content from: {text}")

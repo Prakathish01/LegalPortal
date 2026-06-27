@@ -42,6 +42,12 @@ namespace LegalPortal.API.Services
             services.AddScoped<ISlaConfigRepository, SlaConfigRepository>();
             services.AddScoped<IAuditLogRepository, AuditLogRepository>();
             services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+            services.AddScoped<IEscalationRuleRepository, EscalationRuleRepository>();
+            services.AddScoped<IAIChatSessionRepository, AIChatSessionRepository>();
+            services.AddScoped<IAIQueryLogRepository, AIQueryLogRepository>();
+            services.AddScoped<IPolicyDocumentRepository, PolicyDocumentRepository>();
+            services.AddScoped<IHearingRepository, HearingRepository>();
+            services.AddScoped<IICCMemberRepository, ICCMemberRepository>();
 
             // Services
             services.AddScoped<IAuthService, AuthService>();

@@ -11,7 +11,7 @@ const ChatroomsView = ({ onSelectCase }) => {
 
   // Filter cases assigned to this advocate
   const myCases = useMemo(() => {
-    const myAssignments = assignments.filter((a) => Number(a.AssignedToUserID) === Number(officialId));
+    const myAssignments = assignments.filter((a) => String(a.AssignedToUserID) === String(officialId));
     return myAssignments
       .map((a) => cases.find((c) => c.CaseID === a.CaseID))
       .filter(Boolean);

@@ -1,13 +1,14 @@
 using Amazon.DynamoDBv2.DataModel;
-using LegalPortal.API.Helpers;
 
 namespace LegalPortal.API.Models
 {
     [DynamoDBTable("ep59SlaConfig")]
     public class SlaConfig
     {
-        [DynamoDBHashKey(typeof(IntToStringConverter))]
-        public int CategoryID { get; set; }
+        [DynamoDBHashKey]
+        public string ConfigID { get; set; } = string.Empty;
+
+        public string CategoryID { get; set; } = string.Empty;
 
         public string CategoryName { get; set; } = string.Empty;
 
@@ -15,6 +16,14 @@ namespace LegalPortal.API.Models
 
         public int EscalationThresholdDays { get; set; }
 
-        public int? AutoEscalateTo { get; set; }
+        public string? AutoEscalateTo { get; set; }
+
+        public int NotifyAdminAtDays { get; set; }
+
+        public int NotifyHRAtDays { get; set; }
+
+        public string? UpdatedByAdminID { get; set; }
+
+        public string? UpdatedAt { get; set; }
     }
 }

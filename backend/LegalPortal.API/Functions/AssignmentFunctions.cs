@@ -27,30 +27,33 @@ namespace LegalPortal.API.Functions
             {
                 if (request.HttpMethod == "OPTIONS") return ResponseHelper.CreateOptionsResponse();
 
-                int? caseId = null;
+                string? caseId = null;
                 string? assignmentId = null;
 
                 if (request.PathParameters != null && request.PathParameters.TryGetValue("id", out var idVal))
                 {
-                    if (int.TryParse(idVal, out var parsedId))
+                    if (idVal.StartsWith("CASE-", StringComparison.OrdinalIgnoreCase))
                     {
-                        caseId = parsedId;
+                        caseId = idVal;
                     }
-                    assignmentId = idVal;
+                    else
+                    {
+                        assignmentId = idVal;
+                    }
                 }
 
                 switch (request.HttpMethod)
                 {
                     case "GET":
-                        if (!caseId.HasValue)
+                        if (string.IsNullOrEmpty(caseId))
                         {
                             var all = await _assignmentService.GetAllAsync();
                             return ResponseHelper.CreateOkResponse("Assignments retrieved successfully", all);
                         }
                         else
                         {
-                            var item = await _assignmentService.GetByCaseIdAsync(caseId.Value);
-                            if (item == null) return ResponseHelper.CreateErrorResponse(404, $"No assignment found for Case ID {caseId.Value}.");
+                            var item = await _assignmentService.GetByCaseIdAsync(caseId);
+                            if (item == null) return ResponseHelper.CreateErrorResponse(404, $"No assignment found for Case ID {caseId}.");
                             return ResponseHelper.CreateOkResponse("Assignment retrieved successfully", item);
                         }
 

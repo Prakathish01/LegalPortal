@@ -8,9 +8,11 @@ namespace LegalPortal.API.Models
         [DynamoDBHashKey]
         public string LogID { get; set; } = string.Empty;
 
-        public int ActorID { get; set; }
+        public string ActorID { get; set; } = string.Empty;
 
         public string ActorRole { get; set; } = string.Empty;
+
+        public string? ActorName { get; set; }
 
         public string Action { get; set; } = string.Empty;
 
@@ -25,5 +27,9 @@ namespace LegalPortal.API.Models
         public string Timestamp { get; set; } = string.Empty;
 
         public string IPAddress { get; set; } = string.Empty;
+
+        public string? UserAgent { get; set; }
+
+        public long TTL { get; set; }
     }
 }

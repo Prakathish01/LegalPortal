@@ -4,6 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import Badge from "../ui/Badge";
 import Avatar from "../ui/Avatar";
 import { getCategoryIcon } from "../../utils/categoryMeta";
+import { isAdminRole, isUserRole } from "../../data/dataSource";
 
 const goBackBtnStyle = {
   marginTop: 14,
@@ -57,7 +58,7 @@ const CaseDetail = ({ caseId, onBack, isEmployeeView = false, isAdvocateView = f
   const [mockFileName, setMockFileName] = useState("");
 
   // Retrieve matching details
-  const caseItem = cases.find(c => c.CaseID === Number(caseId));
+  const caseItem = cases.find(c => String(c.CaseID) === String(caseId));
   if (!caseItem) {
     return (
       <div style={{ padding: 24, textAlign: "center" }}>
@@ -80,7 +81,7 @@ const CaseDetail = ({ caseId, onBack, isEmployeeView = false, isAdvocateView = f
   }
 
   const assignment = assignments.find(a => a.CaseID === caseItem.CaseID);
-  if (isAdvocateView && Number(assignment?.AssignedToUserID) !== Number(actingId)) {
+  if (isAdvocateView && String(assignment?.AssignedToUserID) !== String(actingId)) {
     return (
       <div style={{ padding: 48, textAlign: "center" }}>
         <div style={{ fontSize: 32, marginBottom: 12 }}>🔒</div>
@@ -148,7 +149,7 @@ const CaseDetail = ({ caseId, onBack, isEmployeeView = false, isAdvocateView = f
   const handleAssigneeChange = (e) => {
     const nextAssigneeId = e.target.value;
     if (nextAssigneeId) {
-      assignCase(caseItem.CaseID, Number(nextAssigneeId), actingId || 1);
+      assignCase(caseItem.CaseID, String(nextAssigneeId), actingId || "1");
     }
   };
 
@@ -231,7 +232,7 @@ const CaseDetail = ({ caseId, onBack, isEmployeeView = false, isAdvocateView = f
               <div style={{ display: "flex", gap: 8 }}>
                 <Badge label={caseItem.Status} />
                 <Badge label={caseItem.Priority} type="priority" />
-                {caseItem.CategoryID === 8 && (
+                {(() => { const cat = categories.find(ct => String(ct.CategoryID) === String(caseItem.CategoryID)); return cat?.RequiresICC; })() && (
                   <span style={{ fontSize: 11, fontWeight: 600, background: "hsl(280, 75%, 96%)", color: "hsl(280, 75%, 40%)", border: "1px solid hsl(280, 75%, 90%)", borderRadius: 999, padding: "2px 10px" }}>
                     🔒 Confidential ICC
                   </span>
@@ -372,8 +373,8 @@ const CaseDetail = ({ caseId, onBack, isEmployeeView = false, isAdvocateView = f
                   ) : (
                     caseComments.map((cm) => {
                       const commUser = getPerson(cm.UserID);
-                      const isMe = Number(cm.UserID) === Number(actingId);
-                      const isActorAdmin = commUser?.RoleID === 1;
+                      const isMe = String(cm.UserID) === String(actingId);
+                      const isActorAdmin = isAdminRole(commUser?.RoleID);
                       
                       return (
                         <div 
@@ -660,7 +661,7 @@ const CaseDetail = ({ caseId, onBack, isEmployeeView = false, isAdvocateView = f
                   </div>
                   {assigner && (
                     <div style={{ fontSize: 10, color: "hsl(215, 10%, 60%)", marginTop: 2 }}>
-                      Assigned by: {assigner.RoleID === 6 || assignment.AssignedByUserID === caseItem.UserID ? "AI" : assigner.FullName.replace("Adv. ", "")}
+                      Assigned by: {isUserRole(assigner.RoleID) || assignment.AssignedByUserID === caseItem.UserID ? "AI" : assigner.FullName.replace("Adv. ", "")}
                     </div>
                   )}
                 </div>

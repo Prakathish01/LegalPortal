@@ -1,17 +1,16 @@
 /**
  * Resolve a person record from either employees (users) or staff (officials).
- * IDs are disjoint: users 10+, officials 1–21 (plus 19, 20).
  */
 export function createPersonResolver(users = [], officials = []) {
-  const userMap = new Map(users.map((u) => [Number(u.UserID), { ...u, personType: "user" }]));
+  const userMap = new Map(users.map((u) => [String(u.UserID), { ...u, personType: "user" }]));
   const officialMap = new Map(
-    officials.map((o) => [Number(o.OfficialID), { ...o, personType: "official", UserID: o.OfficialID }])
+    officials.map((o) => [String(o.OfficialID), { ...o, personType: "official", UserID: o.OfficialID }])
   );
 
   const getPerson = (id) => {
     if (id == null) return null;
-    const num = Number(id);
-    return userMap.get(num) || officialMap.get(num) || null;
+    const strId = String(id);
+    return userMap.get(strId) || officialMap.get(strId) || null;
   };
 
   const getPersonName = (id) => getPerson(id)?.FullName || "Unknown";

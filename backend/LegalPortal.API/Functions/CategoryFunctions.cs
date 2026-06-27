@@ -27,23 +27,16 @@ namespace LegalPortal.API.Functions
             {
                 if (request.HttpMethod == "OPTIONS") return ResponseHelper.CreateOptionsResponse();
 
-                int? categoryId = null;
+                string? categoryId = null;
                 if (request.PathParameters != null && request.PathParameters.TryGetValue("id", out var val))
                 {
-                    if (int.TryParse(val, out var parsedId))
-                    {
-                        categoryId = parsedId;
-                    }
-                    else
-                    {
-                        return ResponseHelper.CreateErrorResponse(400, "Category ID must be an integer.");
-                    }
+                    categoryId = val;
                 }
 
                 switch (request.HttpMethod)
                 {
                     case "GET":
-                        if (!categoryId.HasValue)
+                        if (string.IsNullOrEmpty(categoryId))
                         {
                             var list = await _categoryService.GetAllAsync();
                             return ResponseHelper.CreateOkResponse("Categories retrieved successfully", list);
@@ -60,15 +53,15 @@ namespace LegalPortal.API.Functions
                         return ResponseHelper.CreateCreatedResponse("Category created successfully", created);
 
                     case "PUT":
-                        if (!categoryId.HasValue) return ResponseHelper.CreateErrorResponse(400, "Category ID is required.");
+                        if (string.IsNullOrEmpty(categoryId)) return ResponseHelper.CreateErrorResponse(400, "Category ID is required.");
                         var updateDto = JsonSerializer.Deserialize<UpdateCategoryDto>(request.Body ?? string.Empty, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                         if (updateDto == null) return ResponseHelper.CreateErrorResponse(400, "Invalid request body.");
-                        var updated = await _categoryService.UpdateAsync(categoryId.Value, updateDto);
+                        var updated = await _categoryService.UpdateAsync(categoryId, updateDto);
                         return ResponseHelper.CreateOkResponse("Category updated successfully", updated);
 
                     case "DELETE":
-                        if (!categoryId.HasValue) return ResponseHelper.CreateErrorResponse(400, "Category ID is required.");
-                        await _categoryService.DeleteAsync(categoryId.Value);
+                        if (string.IsNullOrEmpty(categoryId)) return ResponseHelper.CreateErrorResponse(400, "Category ID is required.");
+                        await _categoryService.DeleteAsync(categoryId);
                         return ResponseHelper.CreateOkResponse("Category deleted successfully", (object?)null);
 
                     default:

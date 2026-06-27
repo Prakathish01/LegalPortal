@@ -1,6 +1,7 @@
 import React, { useContext, useState, useRef, useEffect } from "react";
 import { GrievanceContext } from "../../context/GrievanceContext";
 import { useAuth } from "../../context/AuthContext";
+import { isUserRole } from "../../data/dataSource";
 
 const LoginScreen = () => {
   const { users } = useContext(GrievanceContext);
@@ -21,9 +22,9 @@ const LoginScreen = () => {
   const [password, setPassword] = useState("");
   const profileRef = useRef(null);
 
-  // Plain employees only for the quick-access picker (RoleID 6)
-  const employeeOptions = users.filter((u) => u.RoleID === 6 && u.Status === "Active");
-  const selectedEmployee = employeeOptions.find((u) => u.UserID === Number(selectedEmployeeId));
+  // Plain employees only for the quick-access picker
+  const employeeOptions = users.filter((u) => isUserRole(u.RoleID) && u.Status === "Active");
+  const selectedEmployee = employeeOptions.find((u) => String(u.UserID) === String(selectedEmployeeId));
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -192,7 +193,7 @@ const LoginScreen = () => {
                   }}
                 >
                   {employeeOptions.map((u) => {
-                    const isSelected = Number(selectedEmployeeId) === u.UserID;
+                    const isSelected = String(selectedEmployeeId) === String(u.UserID);
                     return (
                       <button
                         key={u.UserID}

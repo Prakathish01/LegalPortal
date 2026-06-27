@@ -66,7 +66,7 @@ const UsersView = () => {
       u.FullName.toLowerCase().includes(q) ||
       u.Department.toLowerCase().includes(q) ||
       u.EmployeeID.toLowerCase().includes(q);
-    const matchRole = filterRole === "All" || u.RoleID === Number(filterRole);
+    const matchRole = filterRole === "All" || String(u.RoleID) === String(filterRole);
     return matchSearch && matchRole;
   });
 
@@ -78,14 +78,14 @@ const UsersView = () => {
       o.Department.toLowerCase().includes(q) ||
       o.StaffID.toLowerCase().includes(q) ||
       (o.Designation && o.Designation.toLowerCase().includes(q));
-    const matchRole = filterRole === "All" || o.RoleID === Number(filterRole);
+    const matchRole = filterRole === "All" || String(o.RoleID) === String(filterRole);
     return matchSearch && matchRole;
   });
 
   const activeList = directoryTab === "employees" ? filteredUsers : filteredOfficials;
 
   const getRoleLabel = (roleId) => {
-    const r = roles.find((role) => role.RoleID === roleId);
+    const r = roles.find((role) => String(role.RoleID) === String(roleId));
     return r ? r.RoleName : "Unknown";
   };
 
@@ -197,8 +197,8 @@ const UsersView = () => {
           const isOfficial = directoryTab === "officials";
           const personId = isOfficial ? person.OfficialID : person.UserID;
           const roleName = getRoleLabel(person.RoleID);
-          const casesFiled = cases.filter((c) => c.UserID === personId).length;
-          const casesAssigned = assignments.filter((a) => Number(a.AssignedToUserID) === Number(personId)).length;
+          const casesFiled = cases.filter((c) => String(c.UserID) === String(personId)).length;
+          const casesAssigned = assignments.filter((a) => String(a.AssignedToUserID) === String(personId)).length;
           const isActive = person.Status === "Active";
 
           return (

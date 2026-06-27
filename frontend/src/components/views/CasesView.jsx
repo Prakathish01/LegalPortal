@@ -19,7 +19,7 @@ const CasesView = ({ onSelectCase, assignedToId = null }) => {
     return cases.filter((c) => {
       if (assignedToId) {
         const assignment = assignments.find((a) => a.CaseID === c.CaseID);
-        if (!assignment || Number(assignment.AssignedToUserID) !== Number(assignedToId)) return false;
+        if (!assignment || String(assignment.AssignedToUserID) !== String(assignedToId)) return false;
       }
       const cat = categories.find((catItem) => catItem.CategoryID === c.CategoryID);
       const filerName = getPersonName(c.UserID);
@@ -212,7 +212,7 @@ const CasesView = ({ onSelectCase, assignedToId = null }) => {
                     </td>
                     <td style={{ padding: "12px 16px", fontWeight: 500, color: "var(--color-navy-dark)", maxWidth: 220 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        <span>{cat?.CategoryID === 8 ? "🔒" : "📄"}</span>
+                        <span>{cat?.RequiresICC ? "🔒" : "📄"}</span>
                         <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                           {c.Subject}
                         </span>

@@ -27,20 +27,17 @@ namespace LegalPortal.API.Functions
             {
                 if (request.HttpMethod == "OPTIONS") return ResponseHelper.CreateOptionsResponse();
 
-                int? caseId = null;
-                int? attachmentId = null;
-
-                if (request.PathParameters != null && request.PathParameters.TryGetValue("id", out var idVal) && int.TryParse(idVal, out var parsedId))
+                string? idVal = null;
+                if (request.PathParameters != null && request.PathParameters.TryGetValue("id", out var tempVal))
                 {
-                    caseId = parsedId;
-                    attachmentId = parsedId;
+                    idVal = tempVal;
                 }
 
                 switch (request.HttpMethod)
                 {
                     case "GET":
-                        if (!caseId.HasValue) return ResponseHelper.CreateErrorResponse(400, "Case ID is required.");
-                        var list = await _attachmentService.GetByCaseIdAsync(caseId.Value);
+                        if (string.IsNullOrEmpty(idVal)) return ResponseHelper.CreateErrorResponse(400, "Case ID is required.");
+                        var list = await _attachmentService.GetByCaseIdAsync(idVal);
                         return ResponseHelper.CreateOkResponse("Attachments retrieved successfully", list);
 
                     case "POST":
@@ -50,8 +47,8 @@ namespace LegalPortal.API.Functions
                         return ResponseHelper.CreateCreatedResponse("Attachment uploaded successfully", created);
 
                     case "DELETE":
-                        if (!attachmentId.HasValue) return ResponseHelper.CreateErrorResponse(400, "Attachment ID is required.");
-                        await _attachmentService.DeleteAsync(attachmentId.Value);
+                        if (string.IsNullOrEmpty(idVal)) return ResponseHelper.CreateErrorResponse(400, "Attachment ID is required.");
+                        await _attachmentService.DeleteAsync(idVal);
                         return ResponseHelper.CreateOkResponse("Attachment deleted successfully", (object?)null);
 
                     default:

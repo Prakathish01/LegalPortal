@@ -1,16 +1,32 @@
 using Amazon.DynamoDBv2.DataModel;
-using LegalPortal.API.Helpers;
 
 namespace LegalPortal.API.Models
 {
     [DynamoDBTable("ep59Comments")]
     public class Comment
     {
-        [DynamoDBHashKey(typeof(IntToStringConverter))]
-        public int CommentID { get; set; }
-        public int CaseID { get; set; }
-        public int UserID { get; set; }
+        [DynamoDBHashKey]
+        public string CommentID { get; set; } = string.Empty;
+
+        public string CaseID { get; set; } = string.Empty;
+
+        public string UserID { get; set; } = string.Empty;
+
+        public string UserRole { get; set; } = string.Empty;
+
         public string CommentText { get; set; } = string.Empty;
-        public string CreatedDate { get; set; } = string.Empty;
+
+        public bool IsEdited { get; set; }
+
+        public string? EditedAt { get; set; }
+
+        public string CreatedAt { get; set; } = string.Empty;
+
+        [DynamoDBIgnore]
+        public string CreatedDate
+        {
+            get => CreatedAt;
+            set => CreatedAt = value;
+        }
     }
 }

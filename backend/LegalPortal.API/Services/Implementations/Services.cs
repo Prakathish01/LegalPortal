@@ -102,19 +102,18 @@ namespace LegalPortal.API.Services.Implementations
             throw new UnauthorizedException("No account found for that Employee ID / Staff ID / Email.");
         }
 
-        private static string ResolveRoleName(int roleId)
+        private static string ResolveRoleName(string roleId)
         {
-            return roleId switch
+            if (string.IsNullOrEmpty(roleId)) return "Unknown";
+            string normalized = roleId.Replace("_", " ").ToUpper();
+            return normalized switch
             {
-                1 => "Admin",
-                2 => "Legal Manager",
-                3 => "Legal Agent",
-                4 => "HR Manager",
-                5 => "ICC Member",
-                6 => "Employee",
-                7 => "Empanelled Lawyer",
-                8 => "Auditor",
-                _ => "Unknown"
+                "ADMIN" => "Admin",
+                "ICC_PRESIDING_OFFICER" => "ICC Presiding Officer",
+                "EMPANELLED_LAWYER" => "Empanelled Lawyer",
+                "EMPLOYEE" => "Employee",
+                "HR_MANAGER" => "HR Manager",
+                _ => normalized
             };
         }
     }
@@ -122,12 +121,10 @@ namespace LegalPortal.API.Services.Implementations
     public class OfficialService : IOfficialService
     {
         private readonly IOfficialRepository _officialRepository;
-        private readonly ISequenceGenerator _sequenceGenerator;
 
-        public OfficialService(IOfficialRepository officialRepository, ISequenceGenerator sequenceGenerator)
+        public OfficialService(IOfficialRepository officialRepository)
         {
             _officialRepository = officialRepository;
-            _sequenceGenerator = sequenceGenerator;
         }
 
         public async Task<List<OfficialDto>> GetAllAsync()
@@ -153,7 +150,7 @@ namespace LegalPortal.API.Services.Implementations
             var existing = await _officialRepository.GetByStaffIDAsync(dto.StaffID);
             if (existing != null) throw new ValidationException($"Official with Staff ID {dto.StaffID} already exists.");
 
-            int id = await _sequenceGenerator.GetNextSequenceAsync("OfficialID");
+            string id = $"OFF-{Guid.NewGuid().ToString("N").Substring(0, 8).ToUpper()}";
             var official = new Official
             {
                 OfficialID = id,
@@ -218,22 +215,26 @@ namespace LegalPortal.API.Services.Implementations
                 Department = official.Department,
                 Designation = official.Designation,
                 RoleID = official.RoleID,
-                RoleName = official.RoleID switch
-                {
-                    1 => "Admin",
-                    2 => "Legal Manager",
-                    3 => "Legal Agent",
-                    4 => "HR Manager",
-                    5 => "ICC Member",
-                    6 => "Employee",
-                    7 => "Empanelled Lawyer",
-                    8 => "Auditor",
-                    _ => "Unknown"
-                },
+                RoleName = ResolveRoleName(official.RoleID),
                 Specialization = official.Specialization,
                 BarCouncilID = official.BarCouncilID,
                 Status = official.Status,
                 JoinedDate = official.JoinedDate
+            };
+        }
+
+        private static string ResolveRoleName(string roleId)
+        {
+            if (string.IsNullOrEmpty(roleId)) return "Unknown";
+            string normalized = roleId.Replace("_", " ").ToUpper();
+            return normalized switch
+            {
+                "ADMIN" => "Admin",
+                "ICC_PRESIDING_OFFICER" => "ICC Presiding Officer",
+                "EMPANELLED_LAWYER" => "Empanelled Lawyer",
+                "EMPLOYEE" => "Employee",
+                "HR_MANAGER" => "HR Manager",
+                _ => normalized
             };
         }
     }
@@ -241,12 +242,10 @@ namespace LegalPortal.API.Services.Implementations
     public class UserService : IUserService
     {
         private readonly IUserRepository _userRepository;
-        private readonly ISequenceGenerator _sequenceGenerator;
 
-        public UserService(IUserRepository userRepository, ISequenceGenerator sequenceGenerator)
+        public UserService(IUserRepository userRepository)
         {
             _userRepository = userRepository;
-            _sequenceGenerator = sequenceGenerator;
         }
 
         public async Task<List<UserDto>> GetAllAsync()
@@ -255,7 +254,7 @@ namespace LegalPortal.API.Services.Implementations
             return users.Select(MapToDto).ToList();
         }
 
-        public async Task<UserDto> GetByIdAsync(int id)
+        public async Task<UserDto> GetByIdAsync(string id)
         {
             var user = await _userRepository.GetByIdAsync(id);
             if (user == null) throw new NotFoundException($"User with ID {id} not found.");
@@ -272,7 +271,7 @@ namespace LegalPortal.API.Services.Implementations
             var existing = await _userRepository.GetByEmployeeIdAsync(dto.EmployeeID);
             if (existing != null) throw new ValidationException($"User with Employee ID {dto.EmployeeID} already exists.");
 
-            int id = await _sequenceGenerator.GetNextSequenceAsync("UserID");
+            string id = $"USR-{Guid.NewGuid().ToString("N").Substring(0, 8).ToUpper()}";
             var user = new User
             {
                 UserID = id,
@@ -291,7 +290,7 @@ namespace LegalPortal.API.Services.Implementations
             return MapToDto(user);
         }
 
-        public async Task<UserDto> UpdateAsync(int id, UpdateUserDto dto)
+        public async Task<UserDto> UpdateAsync(string id, UpdateUserDto dto)
         {
             var user = await _userRepository.GetByIdAsync(id);
             if (user == null) throw new NotFoundException($"User with ID {id} not found.");
@@ -312,7 +311,7 @@ namespace LegalPortal.API.Services.Implementations
             return MapToDto(user);
         }
 
-        public async Task DeleteAsync(int id)
+        public async Task DeleteAsync(string id)
         {
             var user = await _userRepository.GetByIdAsync(id);
             if (user == null) throw new NotFoundException($"User with ID {id} not found.");
@@ -330,20 +329,24 @@ namespace LegalPortal.API.Services.Implementations
                 Phone = user.Phone,
                 Department = user.Department,
                 RoleID = user.RoleID,
-                RoleName = user.RoleID switch
-                {
-                    1 => "Admin",
-                    2 => "Legal Manager",
-                    3 => "Legal Agent",
-                    4 => "HR Manager",
-                    5 => "ICC Member",
-                    6 => "Employee",
-                    7 => "Empanelled Lawyer",
-                    8 => "Auditor",
-                    _ => "Unknown"
-                },
+                RoleName = ResolveRoleName(user.RoleID),
                 Status = user.Status,
                 CreatedDate = user.CreatedDate
+            };
+        }
+
+        private static string ResolveRoleName(string roleId)
+        {
+            if (string.IsNullOrEmpty(roleId)) return "Unknown";
+            string normalized = roleId.Replace("_", " ").ToUpper();
+            return normalized switch
+            {
+                "ADMIN" => "Admin",
+                "ICC_PRESIDING_OFFICER" => "ICC Presiding Officer",
+                "EMPANELLED_LAWYER" => "Empanelled Lawyer",
+                "EMPLOYEE" => "Employee",
+                "HR_MANAGER" => "HR Manager",
+                _ => normalized
             };
         }
     }
@@ -357,7 +360,6 @@ namespace LegalPortal.API.Services.Implementations
         private readonly ICaseAssignmentRepository _assignmentRepository;
         private readonly ICaseStatusHistoryRepository _statusHistoryRepository;
         private readonly INotificationRepository _notificationRepository;
-        private readonly ISequenceGenerator _sequenceGenerator;
 
         public CaseService(
             ICaseRepository caseRepository,
@@ -366,8 +368,7 @@ namespace LegalPortal.API.Services.Implementations
             ICategoryRepository categoryRepository,
             ICaseAssignmentRepository assignmentRepository,
             ICaseStatusHistoryRepository statusHistoryRepository,
-            INotificationRepository notificationRepository,
-            ISequenceGenerator sequenceGenerator)
+            INotificationRepository notificationRepository)
         {
             _caseRepository = caseRepository;
             _userRepository = userRepository;
@@ -376,7 +377,6 @@ namespace LegalPortal.API.Services.Implementations
             _assignmentRepository = assignmentRepository;
             _statusHistoryRepository = statusHistoryRepository;
             _notificationRepository = notificationRepository;
-            _sequenceGenerator = sequenceGenerator;
         }
 
         public async Task<List<CaseDto>> GetAllAsync()
@@ -390,7 +390,7 @@ namespace LegalPortal.API.Services.Implementations
             return dtos;
         }
 
-        public async Task<CaseDto> GetByIdAsync(int id)
+        public async Task<CaseDto> GetByIdAsync(string id)
         {
             var @case = await _caseRepository.GetByIdAsync(id);
             if (@case == null) throw new NotFoundException($"Case with ID {id} not found.");
@@ -404,7 +404,7 @@ namespace LegalPortal.API.Services.Implementations
                 throw new ValidationException("Subject and Description are required.");
             }
 
-            int id = await _sequenceGenerator.GetNextSequenceAsync("CaseID");
+            string id = $"CASE-{DateTime.UtcNow.Year}-{Guid.NewGuid().ToString("N").Substring(0, 8).ToUpper()}";
             var @case = new Case
             {
                 CaseID = id,
@@ -427,7 +427,7 @@ namespace LegalPortal.API.Services.Implementations
                 CaseID = id,
                 OldStatus = null,
                 NewStatus = Constants.PortalConstants.CaseStatus.Open,
-                ChangedByUserID = dto.UserID,
+                ChangedByUserID = dto.UserID ?? "Anonymous",
                 ChangedByRole = "Employee",
                 Timestamp = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"),
                 Notes = "Case filed initially."
@@ -435,21 +435,27 @@ namespace LegalPortal.API.Services.Implementations
             await _statusHistoryRepository.SaveAsync(history);
 
             // Create notification
-            int notifId = await _sequenceGenerator.GetNextSequenceAsync("NotificationID");
-            var notif = new Notification
+            if (!string.IsNullOrEmpty(dto.UserID))
             {
-                NotificationID = notifId,
-                UserID = dto.UserID,
-                Message = $"Your new case #{id} (\"{dto.Subject.Substring(0, Math.Min(30, dto.Subject.Length))}...\") has been successfully filed.",
-                IsRead = false,
-                CreatedDate = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")
-            };
-            await _notificationRepository.SaveAsync(notif);
+                string notifId = $"NOTIF-{Guid.NewGuid().ToString("N").Substring(0, 8).ToUpper()}";
+                var notif = new Notification
+                {
+                    NotificationID = notifId,
+                    ReceiverID = dto.UserID,
+                    ReceiverRole = "Employee",
+                    Type = "CASE_STATUS_CHANGED",
+                    Title = "Case Filed Successfully",
+                    Body = $"Your new case #{id} (\"{dto.Subject.Substring(0, Math.Min(30, dto.Subject.Length))}...\") has been successfully filed.",
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")
+                };
+                await _notificationRepository.SaveAsync(notif);
+            }
 
             return await MapToDtoAsync(@case);
         }
 
-        public async Task<CaseDto> UpdateAsync(int id, UpdateCaseDto dto)
+        public async Task<CaseDto> UpdateAsync(string id, UpdateCaseDto dto)
         {
             var @case = await _caseRepository.GetByIdAsync(id);
             if (@case == null) throw new NotFoundException($"Case with ID {id} not found.");
@@ -461,12 +467,12 @@ namespace LegalPortal.API.Services.Implementations
 
             if (@case.Status != dto.Status && !string.IsNullOrEmpty(dto.Status))
             {
-                // Trigger full status update logic
+                // Trigger status update logic
                 var statusDto = new UpdateCaseStatusDto
                 {
                     CaseID = id,
                     NewStatus = dto.Status,
-                    ActorUserID = @case.UserID // Attribute status change to owner by default if updated via this endpoint
+                    ActorUserID = @case.UserID ?? "System"
                 };
                 await UpdateStatusAsync(statusDto);
             }
@@ -478,7 +484,7 @@ namespace LegalPortal.API.Services.Implementations
             return await MapToDtoAsync(@case);
         }
 
-        public async Task DeleteAsync(int id)
+        public async Task DeleteAsync(string id)
         {
             var @case = await _caseRepository.GetByIdAsync(id);
             if (@case == null) throw new NotFoundException($"Case with ID {id} not found.");
@@ -518,38 +524,44 @@ namespace LegalPortal.API.Services.Implementations
             await _statusHistoryRepository.SaveAsync(history);
 
             // Create notification for owner
-            int notifId = await _sequenceGenerator.GetNextSequenceAsync("NotificationID");
-            var notif = new Notification
+            if (!string.IsNullOrEmpty(@case.UserID))
             {
-                NotificationID = notifId,
-                UserID = @case.UserID,
-                Message = $"Case #{dto.CaseID} status updated from \"{oldStatus}\" to \"{dto.NewStatus}\".",
-                IsRead = false,
-                CreatedDate = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")
-            };
-            await _notificationRepository.SaveAsync(notif);
+                string notifId = $"NOTIF-{Guid.NewGuid().ToString("N").Substring(0, 8).ToUpper()}";
+                var notif = new Notification
+                {
+                    NotificationID = notifId,
+                    ReceiverID = @case.UserID,
+                    ReceiverRole = "Employee",
+                    Type = "CASE_STATUS_CHANGED",
+                    Title = "Case Status Updated",
+                    Body = $"Case #{dto.CaseID} status updated from \"{oldStatus}\" to \"{dto.NewStatus}\".",
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")
+                };
+                await _notificationRepository.SaveAsync(notif);
+            }
         }
 
         private async Task<CaseDto> MapToDtoAsync(Case @case)
         {
             var category = await _categoryRepository.GetByIdAsync(@case.CategoryID);
-            var reporter = await _userRepository.GetByIdAsync(@case.UserID);
+            var reporter = string.IsNullOrEmpty(@case.UserID) ? null : await _userRepository.GetByIdAsync(@case.UserID);
             
             var assignment = await _assignmentRepository.GetByCaseIdAsync(@case.CaseID);
             string assignedToName = "";
-            int? assignedToUserId = null;
+            string? assignedToUserId = null;
 
             if (assignment != null)
             {
-                assignedToUserId = assignment.AssignedToUserID;
-                var official = await _officialRepository.GetByIdAsync(assignment.AssignedToUserID);
+                assignedToUserId = assignment.OfficialID;
+                var official = await _officialRepository.GetByIdAsync(assignment.OfficialID);
                 if (official != null)
                 {
                     assignedToName = official.FullName;
                 }
                 else
                 {
-                    var user = await _userRepository.GetByIdAsync(assignment.AssignedToUserID);
+                    var user = await _userRepository.GetByIdAsync(assignment.OfficialID);
                     if (user != null) assignedToName = user.FullName;
                 }
             }
@@ -558,7 +570,7 @@ namespace LegalPortal.API.Services.Implementations
             {
                 CaseID = @case.CaseID,
                 UserID = @case.UserID,
-                ReporterName = reporter?.FullName ?? "Unknown",
+                ReporterName = @case.IsAnonymous ? "Anonymous Complainant" : (reporter?.FullName ?? "Unknown"),
                 CategoryID = @case.CategoryID,
                 CategoryName = category?.CategoryName ?? "Unknown",
                 Subject = @case.Subject,
@@ -576,12 +588,10 @@ namespace LegalPortal.API.Services.Implementations
     public class CategoryService : ICategoryService
     {
         private readonly ICategoryRepository _categoryRepository;
-        private readonly ISequenceGenerator _sequenceGenerator;
 
-        public CategoryService(ICategoryRepository categoryRepository, ISequenceGenerator sequenceGenerator)
+        public CategoryService(ICategoryRepository categoryRepository)
         {
             _categoryRepository = categoryRepository;
-            _sequenceGenerator = sequenceGenerator;
         }
 
         public async Task<List<CategoryDto>> GetAllAsync()
@@ -602,12 +612,14 @@ namespace LegalPortal.API.Services.Implementations
                 throw new ValidationException("Category Name is required.");
             }
 
-            int id = await _sequenceGenerator.GetNextSequenceAsync("CategoryID");
+            string id = $"CAT-{Guid.NewGuid().ToString("N").Substring(0, 8).ToUpper()}";
             var category = new Category
             {
                 CategoryID = id,
                 CategoryName = dto.CategoryName,
-                Description = dto.Description
+                Description = dto.Description,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
             };
 
             await _categoryRepository.SaveAsync(category);
@@ -619,7 +631,7 @@ namespace LegalPortal.API.Services.Implementations
             };
         }
 
-        public async Task<CategoryDto> UpdateAsync(int id, UpdateCategoryDto dto)
+        public async Task<CategoryDto> UpdateAsync(string id, UpdateCategoryDto dto)
         {
             var category = await _categoryRepository.GetByIdAsync(id);
             if (category == null) throw new NotFoundException($"Category with ID {id} not found.");
@@ -636,7 +648,7 @@ namespace LegalPortal.API.Services.Implementations
             };
         }
 
-        public async Task DeleteAsync(int id)
+        public async Task DeleteAsync(string id)
         {
             var category = await _categoryRepository.GetByIdAsync(id);
             if (category == null) throw new NotFoundException($"Category with ID {id} not found.");
@@ -649,21 +661,18 @@ namespace LegalPortal.API.Services.Implementations
         private readonly ICommentRepository _commentRepository;
         private readonly IUserRepository _userRepository;
         private readonly IOfficialRepository _officialRepository;
-        private readonly ISequenceGenerator _sequenceGenerator;
 
         public CommentService(
             ICommentRepository commentRepository,
             IUserRepository userRepository,
-            IOfficialRepository officialRepository,
-            ISequenceGenerator sequenceGenerator)
+            IOfficialRepository officialRepository)
         {
             _commentRepository = commentRepository;
             _userRepository = userRepository;
             _officialRepository = officialRepository;
-            _sequenceGenerator = sequenceGenerator;
         }
 
-        public async Task<List<CommentDto>> GetByCaseIdAsync(int caseId)
+        public async Task<List<CommentDto>> GetByCaseIdAsync(string caseId)
         {
             var comments = await _commentRepository.GetByCaseIdAsync(caseId);
             var dtos = new List<CommentDto>();
@@ -688,7 +697,7 @@ namespace LegalPortal.API.Services.Implementations
                     UserID = c.UserID,
                     UserFullName = userName,
                     CommentText = c.CommentText,
-                    CreatedDate = c.CreatedDate
+                    CreatedDate = c.CreatedAt
                 });
             }
             return dtos.OrderBy(c => c.CreatedDate).ToList();
@@ -701,14 +710,14 @@ namespace LegalPortal.API.Services.Implementations
                 throw new ValidationException("Comment Text cannot be empty.");
             }
 
-            int id = await _sequenceGenerator.GetNextSequenceAsync("CommentID");
+            string id = $"CMT-{Guid.NewGuid().ToString("N").Substring(0, 8).ToUpper()}";
             var comment = new Comment
             {
                 CommentID = id,
                 CaseID = dto.CaseID,
                 UserID = dto.UserID,
                 CommentText = dto.CommentText,
-                CreatedDate = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")
+                CreatedAt = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")
             };
 
             await _commentRepository.SaveAsync(comment);
@@ -732,11 +741,11 @@ namespace LegalPortal.API.Services.Implementations
                 UserID = comment.UserID,
                 UserFullName = userName,
                 CommentText = comment.CommentText,
-                CreatedDate = comment.CreatedDate
+                CreatedDate = comment.CreatedAt
             };
         }
 
-        public async Task DeleteAsync(int commentId)
+        public async Task DeleteAsync(string commentId)
         {
             var comment = await _commentRepository.GetByIdAsync(commentId);
             if (comment == null) throw new NotFoundException($"Comment with ID {commentId} not found.");
@@ -749,21 +758,18 @@ namespace LegalPortal.API.Services.Implementations
         private readonly IAttachmentRepository _attachmentRepository;
         private readonly IUserRepository _userRepository;
         private readonly IOfficialRepository _officialRepository;
-        private readonly ISequenceGenerator _sequenceGenerator;
 
         public AttachmentService(
             IAttachmentRepository attachmentRepository,
             IUserRepository userRepository,
-            IOfficialRepository officialRepository,
-            ISequenceGenerator sequenceGenerator)
+            IOfficialRepository officialRepository)
         {
             _attachmentRepository = attachmentRepository;
             _userRepository = userRepository;
             _officialRepository = officialRepository;
-            _sequenceGenerator = sequenceGenerator;
         }
 
-        public async Task<List<AttachmentDto>> GetByCaseIdAsync(int caseId)
+        public async Task<List<AttachmentDto>> GetByCaseIdAsync(string caseId)
         {
             var attachments = await _attachmentRepository.GetByCaseIdAsync(caseId);
             var dtos = new List<AttachmentDto>();
@@ -802,7 +808,7 @@ namespace LegalPortal.API.Services.Implementations
                 throw new ValidationException("File Name and File Path are required.");
             }
 
-            int id = await _sequenceGenerator.GetNextSequenceAsync("AttachmentID");
+            string id = $"ATT-{Guid.NewGuid().ToString("N").Substring(0, 8).ToUpper()}";
             var attachment = new Attachment
             {
                 AttachmentID = id,
@@ -839,7 +845,7 @@ namespace LegalPortal.API.Services.Implementations
             };
         }
 
-        public async Task DeleteAsync(int id)
+        public async Task DeleteAsync(string id)
         {
             var attachment = await _attachmentRepository.GetByIdAsync(id);
             if (attachment == null) throw new NotFoundException($"Attachment with ID {id} not found.");
@@ -854,22 +860,19 @@ namespace LegalPortal.API.Services.Implementations
         private readonly IUserRepository _userRepository;
         private readonly IOfficialRepository _officialRepository;
         private readonly INotificationRepository _notificationRepository;
-        private readonly ISequenceGenerator _sequenceGenerator;
 
         public CaseAssignmentService(
             ICaseAssignmentRepository assignmentRepository,
             ICaseRepository caseRepository,
             IUserRepository userRepository,
             IOfficialRepository officialRepository,
-            INotificationRepository notificationRepository,
-            ISequenceGenerator sequenceGenerator)
+            INotificationRepository notificationRepository)
         {
             _assignmentRepository = assignmentRepository;
             _caseRepository = caseRepository;
             _userRepository = userRepository;
             _officialRepository = officialRepository;
             _notificationRepository = notificationRepository;
-            _sequenceGenerator = sequenceGenerator;
         }
 
         public async Task<List<CaseAssignmentDto>> GetAllAsync()
@@ -883,7 +886,7 @@ namespace LegalPortal.API.Services.Implementations
             return dtos;
         }
 
-        public async Task<CaseAssignmentDto?> GetByCaseIdAsync(int caseId)
+        public async Task<CaseAssignmentDto?> GetByCaseIdAsync(string caseId)
         {
             var assignment = await _assignmentRepository.GetByCaseIdAsync(caseId);
             if (assignment == null) return null;
@@ -908,12 +911,22 @@ namespace LegalPortal.API.Services.Implementations
             {
                 AssignmentID = Guid.NewGuid().ToString(),
                 CaseID = dto.CaseID,
-                AssignedToUserID = dto.AssignedToUserID,
-                AssignedByUserID = dto.AssignedByUserID,
-                AssignedDate = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")
+                OfficialID = dto.AssignedToUserID,
+                AssignedByAdminID = dto.AssignedByUserID,
+                AssignedAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+                IsActive = true
             };
 
             await _assignmentRepository.SaveAsync(assignment);
+
+            // Update Case table to reflect assigned official ID
+            var @case = await _caseRepository.GetByIdAsync(dto.CaseID);
+            if (@case != null)
+            {
+                @case.AssignedOfficialID = dto.AssignedToUserID;
+                @case.Status = Constants.PortalConstants.CaseStatus.UnderReview;
+                await _caseRepository.SaveAsync(@case);
+            }
 
             // Send notifications
             await SendAssignmentNotificationsAsync(dto.CaseID, dto.AssignedToUserID, dto.AssignedByUserID);
@@ -926,11 +939,22 @@ namespace LegalPortal.API.Services.Implementations
             var assignment = await _assignmentRepository.GetByIdAsync(assignmentId);
             if (assignment == null) throw new NotFoundException($"Assignment with ID {assignmentId} not found.");
 
-            assignment.AssignedToUserID = dto.AssignedToUserID;
-            assignment.AssignedByUserID = dto.AssignedByUserID;
-            assignment.AssignedDate = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
+            string oldAssigneeID = assignment.OfficialID;
+            assignment.OfficialID = dto.AssignedToUserID;
+            assignment.AssignedByAdminID = dto.AssignedByUserID;
+            assignment.AssignedAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ");
+            assignment.TransferredFromOfficialID = oldAssigneeID;
+            assignment.TransferredAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ");
 
             await _assignmentRepository.SaveAsync(assignment);
+
+            // Update Case table to reflect assigned official ID
+            var @case = await _caseRepository.GetByIdAsync(assignment.CaseID);
+            if (@case != null)
+            {
+                @case.AssignedOfficialID = dto.AssignedToUserID;
+                await _caseRepository.SaveAsync(@case);
+            }
 
             // Send notifications
             await SendAssignmentNotificationsAsync(assignment.CaseID, dto.AssignedToUserID, dto.AssignedByUserID);
@@ -938,7 +962,7 @@ namespace LegalPortal.API.Services.Implementations
             return await MapToDtoAsync(assignment);
         }
 
-        private async Task SendAssignmentNotificationsAsync(int caseId, int assignedToUserId, int assignedByUserId)
+        private async Task SendAssignmentNotificationsAsync(string caseId, string assignedToUserId, string assignedByUserId)
         {
             var @case = await _caseRepository.GetByIdAsync(caseId);
             if (@case == null) return;
@@ -954,65 +978,80 @@ namespace LegalPortal.API.Services.Implementations
             string caseSubjectSnippet = @case.Subject.Substring(0, Math.Min(30, @case.Subject.Length));
 
             // Notify Assignee
-            int notifId1 = await _sequenceGenerator.GetNextSequenceAsync("NotificationID");
+            string notifId1 = $"NOTIF-{Guid.NewGuid().ToString("N").Substring(0, 8).ToUpper()}";
             var assigneeNotif = new Notification
             {
                 NotificationID = notifId1,
-                UserID = assignedToUserId,
-                Message = $"You have been assigned Case #{caseId} (\"{caseSubjectSnippet}...\") by {assignerName}.",
+                ReceiverID = assignedToUserId,
+                ReceiverRole = "Official",
+                Type = "CASE_ASSIGNED",
+                Title = "New Case Assigned",
+                Body = $"You have been assigned Case #{caseId} (\"{caseSubjectSnippet}...\") by {assignerName}.",
                 IsRead = false,
-                CreatedDate = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")
+                CreatedAt = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")
             };
             await _notificationRepository.SaveAsync(assigneeNotif);
 
             // Notify Owner
-            int notifId2 = await _sequenceGenerator.GetNextSequenceAsync("NotificationID");
-            var ownerNotif = new Notification
+            if (!string.IsNullOrEmpty(@case.UserID))
             {
-                NotificationID = notifId2,
-                UserID = @case.UserID,
-                Message =  $"Your case #{caseId} has been assigned to {assigneeName}.",
-                IsRead = false,
-                CreatedDate = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")
-            };
-            await _notificationRepository.SaveAsync(ownerNotif);
+                string notifId2 = $"NOTIF-{Guid.NewGuid().ToString("N").Substring(0, 8).ToUpper()}";
+                var ownerNotif = new Notification
+                {
+                    NotificationID = notifId2,
+                    ReceiverID = @case.UserID,
+                    ReceiverRole = "Employee",
+                    Type = "CASE_STATUS_CHANGED",
+                    Title = "Advocate Assigned to Case",
+                    Body = $"Your case #{caseId} has been assigned to {assigneeName}.",
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")
+                };
+                await _notificationRepository.SaveAsync(ownerNotif);
+            }
         }
 
         private async Task<CaseAssignmentDto> MapToDtoAsync(CaseAssignment a)
         {
             string assignedToName = "Unknown";
-            var officialTo = await _officialRepository.GetByIdAsync(a.AssignedToUserID);
-            if (officialTo != null)
+            if (!string.IsNullOrEmpty(a.OfficialID))
             {
-                assignedToName = officialTo.FullName;
-            }
-            else
-            {
-                var userTo = await _userRepository.GetByIdAsync(a.AssignedToUserID);
-                if (userTo != null) assignedToName = userTo.FullName;
+                var officialTo = await _officialRepository.GetByIdAsync(a.OfficialID);
+                if (officialTo != null)
+                {
+                    assignedToName = officialTo.FullName;
+                }
+                else
+                {
+                    var userTo = await _userRepository.GetByIdAsync(a.OfficialID);
+                    if (userTo != null) assignedToName = userTo.FullName;
+                }
             }
 
             string assignedByName = "Unknown";
-            var officialBy = await _officialRepository.GetByIdAsync(a.AssignedByUserID);
-            if (officialBy != null)
+            if (!string.IsNullOrEmpty(a.AssignedByAdminID))
             {
-                assignedByName = officialBy.FullName;
-            }
-            else
-            {
-                var userBy = await _userRepository.GetByIdAsync(a.AssignedByUserID);
-                if (userBy != null) assignedByName = userBy.FullName;
+                var officialBy = await _officialRepository.GetByIdAsync(a.AssignedByAdminID);
+                if (officialBy != null)
+                {
+                    assignedByName = officialBy.FullName;
+                }
+                else
+                {
+                    var userBy = await _userRepository.GetByIdAsync(a.AssignedByAdminID);
+                    if (userBy != null) assignedByName = userBy.FullName;
+                }
             }
 
             return new CaseAssignmentDto
             {
                 AssignmentID = a.AssignmentID,
                 CaseID = a.CaseID,
-                AssignedToUserID = a.AssignedToUserID,
+                AssignedToUserID = a.OfficialID,
                 AssignedToName = assignedToName,
-                AssignedByUserID = a.AssignedByUserID,
+                AssignedByUserID = a.AssignedByAdminID,
                 AssignedByName = assignedByName,
-                AssignedDate = a.AssignedDate
+                AssignedDate = a.AssignedAt
             };
         }
     }
@@ -1020,24 +1059,22 @@ namespace LegalPortal.API.Services.Implementations
     public class NotificationService : INotificationService
     {
         private readonly INotificationRepository _notificationRepository;
-        private readonly ISequenceGenerator _sequenceGenerator;
 
-        public NotificationService(INotificationRepository notificationRepository, ISequenceGenerator sequenceGenerator)
+        public NotificationService(INotificationRepository notificationRepository)
         {
             _notificationRepository = notificationRepository;
-            _sequenceGenerator = sequenceGenerator;
         }
 
-        public async Task<List<NotificationDto>> GetByUserIdAsync(int userId)
+        public async Task<List<NotificationDto>> GetByUserIdAsync(string userId)
         {
             var notifications = await _notificationRepository.GetByUserIdAsync(userId);
             return notifications.Select(n => new NotificationDto
             {
                 NotificationID = n.NotificationID,
-                UserID = n.UserID,
-                Message = n.Message,
+                UserID = n.ReceiverID,
+                Message = n.Body,
                 IsRead = n.IsRead,
-                CreatedDate = n.CreatedDate
+                CreatedDate = n.CreatedAt
             }).OrderByDescending(n => n.CreatedDate).ToList();
         }
 
@@ -1048,33 +1085,37 @@ namespace LegalPortal.API.Services.Implementations
                 throw new ValidationException("Notification Message is required.");
             }
 
-            int id = await _sequenceGenerator.GetNextSequenceAsync("NotificationID");
+            string id = $"NOTIF-{Guid.NewGuid().ToString("N").Substring(0, 8).ToUpper()}";
             var notification = new Notification
             {
                 NotificationID = id,
-                UserID = dto.UserID,
-                Message = dto.Message,
+                ReceiverID = dto.UserID,
+                ReceiverRole = "Employee",
+                Type = "SYSTEM_NOTIFICATION",
+                Title = "System Update",
+                Body = dto.Message,
                 IsRead = false,
-                CreatedDate = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")
+                CreatedAt = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")
             };
 
             await _notificationRepository.SaveAsync(notification);
             return new NotificationDto
             {
                 NotificationID = notification.NotificationID,
-                UserID = notification.UserID,
-                Message = notification.Message,
+                UserID = notification.ReceiverID,
+                Message = notification.Body,
                 IsRead = notification.IsRead,
-                CreatedDate = notification.CreatedDate
+                CreatedDate = notification.CreatedAt
             };
         }
 
-        public async Task MarkAsReadAsync(int id)
+        public async Task MarkAsReadAsync(string id)
         {
             var notification = await _notificationRepository.GetByIdAsync(id);
             if (notification == null) throw new NotFoundException($"Notification with ID {id} not found.");
 
             notification.IsRead = true;
+            notification.ReadAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ");
             await _notificationRepository.SaveAsync(notification);
         }
     }
@@ -1082,12 +1123,10 @@ namespace LegalPortal.API.Services.Implementations
     public class WhistleblowerService : IWhistleblowerService
     {
         private readonly IWhistleblowerRepository _whistleblowerRepository;
-        private readonly ISequenceGenerator _sequenceGenerator;
 
-        public WhistleblowerService(IWhistleblowerRepository whistleblowerRepository, ISequenceGenerator sequenceGenerator)
+        public WhistleblowerService(IWhistleblowerRepository whistleblowerRepository)
         {
             _whistleblowerRepository = whistleblowerRepository;
-            _sequenceGenerator = sequenceGenerator;
         }
 
         public async Task<WhistleblowerReportDto> CreateAsync(CreateWhistleblowerReportDto dto)
@@ -1097,10 +1136,8 @@ namespace LegalPortal.API.Services.Implementations
                 throw new ValidationException("Subject, Category, and Description are required for anonymous whistleblower reporting.");
             }
 
-            int id = await _sequenceGenerator.GetNextSequenceAsync("ReportID");
-            // Generating reference number WB-2024-XXXX format (matching system year or current 2026 year)
-            int currentYear = DateTime.UtcNow.Year;
-            string refNum = $"WB-{currentYear}-{id:D4}";
+            string id = Guid.NewGuid().ToString();
+            string refNum = $"WB-{DateTime.UtcNow.Year}-{Guid.NewGuid().ToString("N").Substring(0, 4).ToUpper()}";
 
             var report = new WhistleblowerReport
             {
@@ -1163,6 +1200,12 @@ namespace LegalPortal.API.Services.Implementations
 
         public async Task<List<CaseMessage>> GetByCaseIdAsync(int caseId)
         {
+            // Backward compatibility
+            return await _messageRepository.GetByCaseIdAsync(caseId.ToString());
+        }
+
+        public async Task<List<CaseMessage>> GetByCaseIdAsync(string caseId)
+        {
             return await _messageRepository.GetByCaseIdAsync(caseId);
         }
 
@@ -1204,6 +1247,12 @@ namespace LegalPortal.API.Services.Implementations
 
         public async Task<List<CaseDocumentRequest>> GetByCaseIdAsync(int caseId)
         {
+            // Backward compatibility
+            return await _requestRepository.GetByCaseIdAsync(caseId.ToString());
+        }
+
+        public async Task<List<CaseDocumentRequest>> GetByCaseIdAsync(string caseId)
+        {
             return await _requestRepository.GetByCaseIdAsync(caseId);
         }
 
@@ -1243,7 +1292,12 @@ namespace LegalPortal.API.Services.Implementations
             _slaConfigRepository = slaConfigRepository;
         }
 
-        public async Task<SlaConfig?> GetByCategoryIdAsync(int categoryId)
+        public async Task<SlaConfig?> GetByConfigIdAsync(string configId)
+        {
+            return await _slaConfigRepository.GetByConfigIdAsync(configId);
+        }
+
+        public async Task<SlaConfig?> GetByCategoryIdAsync(string categoryId)
         {
             return await _slaConfigRepository.GetByCategoryIdAsync(categoryId);
         }
@@ -1258,9 +1312,9 @@ namespace LegalPortal.API.Services.Implementations
             await _slaConfigRepository.SaveAsync(config);
         }
 
-        public async Task DeleteAsync(int categoryId)
+        public async Task DeleteAsync(string configId)
         {
-            await _slaConfigRepository.DeleteAsync(categoryId);
+            await _slaConfigRepository.DeleteAsync(configId);
         }
     }
 
@@ -1278,7 +1332,7 @@ namespace LegalPortal.API.Services.Implementations
             return await _auditLogRepository.GetByIdAsync(logId);
         }
 
-        public async Task<List<AuditLog>> GetByActorIdAsync(int actorId)
+        public async Task<List<AuditLog>> GetByActorIdAsync(string actorId)
         {
             return await _auditLogRepository.GetByActorIdAsync(actorId);
         }

@@ -110,8 +110,8 @@ export const addCase = createAsyncThunk(
         const res = await apiRequest("/complaints", {
           method: "POST",
           body: {
-            UserID: Number(uId),
-            CategoryID: Number(categoryId),
+            UserID: String(uId),
+            CategoryID: String(categoryId),
             Subject: subject,
             Description: description,
             Priority: priority || "Medium",
@@ -133,7 +133,7 @@ export const addCase = createAsyncThunk(
       const newCase = {
         CaseID: newCaseId,
         UserID: uId,
-        CategoryID: Number(categoryId),
+        CategoryID: String(categoryId),
         Subject: subject,
         Description: description,
         Priority: priority || "Medium",
@@ -220,7 +220,7 @@ export const addOfficial = createAsyncThunk(
             Phone: payload.phone,
             Department: payload.department,
             Designation: payload.designation,
-            RoleID: Number(payload.roleId),
+            RoleID: String(payload.roleId),
             Specialization: payload.specialization,
             BarCouncilID: payload.barCouncilId,
             Status: "Active",
@@ -245,7 +245,7 @@ export const addOfficial = createAsyncThunk(
         Phone: payload.phone,
         Department: payload.department,
         Designation: payload.designation,
-        RoleID: Number(payload.roleId),
+        RoleID: String(payload.roleId),
         Specialization: payload.specialization,
         BarCouncilID: payload.barCouncilId,
         Status: "Active",
@@ -263,14 +263,14 @@ export const fetchCommentsForCase = createAsyncThunk(
       try {
         const res = await apiRequest(`/comments/${caseId}`);
         if (res.success && res.data) {
-          return { caseId: Number(caseId), comments: res.data };
+          return { caseId: String(caseId), comments: res.data };
         }
         return rejectWithValue("Failed to fetch comments.");
       } catch (error) {
         return rejectWithValue("Failed to fetch comments: " + error.message);
       }
     }
-    return { caseId: Number(caseId), comments: [] };
+    return { caseId: String(caseId), comments: [] };
   }
 );
 
@@ -283,8 +283,8 @@ export const addComment = createAsyncThunk(
         const res = await apiRequest("/comments", {
           method: "POST",
           body: {
-            CaseID: Number(caseId),
-            UserID: Number(userId),
+            CaseID: String(caseId),
+            UserID: String(userId),
             CommentText: commentText,
           }
         });
@@ -302,8 +302,8 @@ export const addComment = createAsyncThunk(
 
       const newComment = {
         CommentID: newCommentId,
-        CaseID: Number(caseId),
-        UserID: Number(userId),
+        CaseID: String(caseId),
+        UserID: String(userId),
         CommentText: commentText,
         CreatedDate: timestamp,
       };
@@ -318,7 +318,7 @@ export const updateCaseStatus = createAsyncThunk(
     const timestamp = getTimestamp();
     const dateOnly = timestamp.split(" ")[0];
     const { grievance } = getState();
-    const targetCase = grievance.cases.find((c) => c.CaseID === Number(caseId));
+    const targetCase = grievance.cases.find((c) => c.CaseID === String(caseId));
     const oldStatus = targetCase ? targetCase.Status : "Open";
 
     if (USE_REMOTE) {
@@ -326,23 +326,23 @@ export const updateCaseStatus = createAsyncThunk(
         await apiRequest("/status", {
           method: "PUT",
           body: {
-            CaseID: Number(caseId),
+            CaseID: String(caseId),
             NewStatus: newStatus,
-            ActorUserID: Number(actorUserId),
+            ActorUserID: String(actorUserId),
           }
         });
 
         const historyId = grievance.statusHistory.length > 0 ? Math.max(...grievance.statusHistory.map((h) => h.HistoryID)) + 1 : 1;
         const newHistory = {
           HistoryID: historyId,
-          CaseID: Number(caseId),
+          CaseID: String(caseId),
           OldStatus: oldStatus,
           NewStatus: newStatus,
-          ChangedBy: Number(actorUserId),
+          ChangedBy: String(actorUserId),
           ChangedDate: timestamp,
         };
 
-        return { caseId: Number(caseId), newStatus, dateOnly, newHistory };
+        return { caseId: String(caseId), newStatus, dateOnly, newHistory };
       } catch (error) {
         return rejectWithValue("Failed to update case status: " + error.message);
       }
@@ -350,10 +350,10 @@ export const updateCaseStatus = createAsyncThunk(
       const historyId = grievance.statusHistory.length > 0 ? Math.max(...grievance.statusHistory.map((h) => h.HistoryID)) + 1 : 1;
       const newHistory = {
         HistoryID: historyId,
-        CaseID: Number(caseId),
+        CaseID: String(caseId),
         OldStatus: oldStatus,
         NewStatus: newStatus,
-        ChangedBy: Number(actorUserId),
+        ChangedBy: String(actorUserId),
         ChangedDate: timestamp,
       };
 
@@ -369,7 +369,7 @@ export const updateCaseStatus = createAsyncThunk(
         };
       }
 
-      return { caseId: Number(caseId), newStatus, dateOnly, newHistory, newNotif };
+      return { caseId: String(caseId), newStatus, dateOnly, newHistory, newNotif };
     }
   }
 );
@@ -385,9 +385,9 @@ export const assignCase = createAsyncThunk(
         const res = await apiRequest("/assignments", {
           method: "POST",
           body: {
-            CaseID: Number(caseId),
-            AssignedToUserID: Number(assignedToUserId),
-            AssignedByUserID: Number(assignedByUserId),
+            CaseID: String(caseId),
+            AssignedToUserID: String(assignedToUserId),
+            AssignedByUserID: String(assignedByUserId),
           }
         });
         if (res.success && res.data) {
@@ -398,12 +398,12 @@ export const assignCase = createAsyncThunk(
         return rejectWithValue("Failed to assign case: " + error.message);
       }
     } else {
-      const targetCase = grievance.cases.find((c) => c.CaseID === Number(caseId));
+      const targetCase = grievance.cases.find((c) => c.CaseID === String(caseId));
       const resolver = createPersonResolver(grievance.users, grievance.officials);
-      const assignee = resolver.getPerson(Number(assignedToUserId));
-      const assigner = resolver.getPerson(Number(assignedByUserId));
+      const assignee = resolver.getPerson(String(assignedToUserId));
+      const assigner = resolver.getPerson(String(assignedByUserId));
 
-      const existingAssignmentIdx = grievance.assignments.findIndex((a) => a.CaseID === Number(caseId));
+      const existingAssignmentIdx = grievance.assignments.findIndex((a) => a.CaseID === String(caseId));
       let updatedAssignment = null;
       let newAssignment = null;
 
@@ -411,17 +411,17 @@ export const assignCase = createAsyncThunk(
         const prevAssign = grievance.assignments[existingAssignmentIdx];
         updatedAssignment = {
           ...prevAssign,
-          AssignedToUserID: Number(assignedToUserId),
-          AssignedByUserID: Number(assignedByUserId),
+          AssignedToUserID: String(assignedToUserId),
+          AssignedByUserID: String(assignedByUserId),
           AssignedDate: timestamp,
         };
       } else {
         const newAssignId = grievance.assignments.length > 0 ? Math.max(...grievance.assignments.map((a) => a.AssignmentID)) + 1 : 1;
         newAssignment = {
           AssignmentID: newAssignId,
-          CaseID: Number(caseId),
-          AssignedToUserID: Number(assignedToUserId),
-          AssignedByUserID: Number(assignedByUserId),
+          CaseID: String(caseId),
+          AssignedToUserID: String(assignedToUserId),
+          AssignedByUserID: String(assignedByUserId),
           AssignedDate: timestamp,
         };
       }
@@ -431,7 +431,7 @@ export const assignCase = createAsyncThunk(
         const notifId1 = grievance.notifications.length > 0 ? Math.max(...grievance.notifications.map((n) => n.NotificationID)) + 1 : 1;
         notifs.push({
           NotificationID: notifId1,
-          UserID: Number(assignedToUserId),
+          UserID: String(assignedToUserId),
           Message: `You have been assigned Case #${caseId} ("${targetCase.Subject.substring(0, 30)}...") by ${assigner?.FullName || "Admin"}.`,
           IsRead: false,
           CreatedDate: timestamp,
@@ -458,14 +458,14 @@ export const fetchAttachmentsForCase = createAsyncThunk(
       try {
         const res = await apiRequest(`/attachments/${caseId}`);
         if (res.success && res.data) {
-          return { caseId: Number(caseId), attachments: res.data };
+          return { caseId: String(caseId), attachments: res.data };
         }
         return rejectWithValue("Failed to fetch attachments.");
       } catch (error) {
         return rejectWithValue("Failed to fetch attachments: " + error.message);
       }
     }
-    return { caseId: Number(caseId), attachments: [] };
+    return { caseId: String(caseId), attachments: [] };
   }
 );
 
@@ -477,10 +477,10 @@ export const addAttachment = createAsyncThunk(
         const res = await apiRequest("/attachments", {
           method: "POST",
           body: {
-            CaseID: Number(caseId),
+            CaseID: String(caseId),
             FileName: fileName,
             FilePath: `/uploads/cases/${caseId}/${fileName}`,
-            UploadedBy: Number(uploadedByUserId),
+            UploadedBy: String(uploadedByUserId),
           }
         });
         if (res.success && res.data) {
@@ -497,10 +497,10 @@ export const addAttachment = createAsyncThunk(
 
       const newAttachment = {
         AttachmentID: newAttachId,
-        CaseID: Number(caseId),
+        CaseID: String(caseId),
         FileName: fileName,
         FilePath: `/uploads/cases/${caseId}/${fileName}`,
-        UploadedBy: Number(uploadedByUserId),
+        UploadedBy: String(uploadedByUserId),
         UploadedDate: timestamp,
       };
       return { newAttachment };
@@ -516,12 +516,12 @@ export const markNotificationAsRead = createAsyncThunk(
         await apiRequest(`/notifications/${notificationId}/read`, {
           method: "PUT"
         });
-        return Number(notificationId);
+        return String(notificationId);
       } catch (error) {
         return rejectWithValue("Failed to update notification: " + error.message);
       }
     }
-    return Number(notificationId);
+    return String(notificationId);
   }
 );
 
@@ -531,7 +531,7 @@ export const markAllNotificationsAsRead = createAsyncThunk(
     if (USE_REMOTE) {
       try {
         const { grievance } = getState();
-        const unread = grievance.notifications.filter((n) => n.UserID === Number(userId) && !n.IsRead);
+        const unread = grievance.notifications.filter((n) => n.UserID === String(userId) && !n.IsRead);
         await Promise.all(
           unread.map((n) =>
             apiRequest(`/notifications/${n.NotificationID}/read`, {
@@ -539,12 +539,12 @@ export const markAllNotificationsAsRead = createAsyncThunk(
             })
           )
         );
-        return Number(userId);
+        return String(userId);
       } catch (error) {
         return rejectWithValue("Failed to mark all notifications as read: " + error.message);
       }
     }
-    return Number(userId);
+    return String(userId);
   }
 );
 
@@ -556,18 +556,19 @@ export const fileCaseWithAdvocate = createAsyncThunk(
 
     if (USE_REMOTE) {
       try {
-        const caseId = await dispatch(addCase({ subject, categoryId, priority, description, userId: uId })).unwrap();
+        const addCaseResult = await dispatch(addCase({ subject, categoryId, priority, description, userId: uId })).unwrap();
+        const caseId = String(addCaseResult.newCase ? addCaseResult.newCase.CaseID : addCaseResult.newCaseId);
         if (!caseId) return null;
-
+ 
         if (advocateUserId) {
           await dispatch(assignCase({ caseId, assignedToUserId: advocateUserId, assignedByUserId: uId })).unwrap();
           await dispatch(updateCaseStatus({ caseId, newStatus: "In Progress", actorUserId: uId })).unwrap();
         }
-
+ 
         if (triageNote) {
           await dispatch(addComment({ caseId, userId: advocateUserId || uId, commentText: triageNote })).unwrap();
         }
-
+ 
         return caseId;
       } catch (error) {
         return rejectWithValue("Failed to file case with auto-assigned advocate: " + error.message);
@@ -580,7 +581,7 @@ export const fileCaseWithAdvocate = createAsyncThunk(
       const newCase = {
         CaseID: newCaseId,
         UserID: uId,
-        CategoryID: Number(categoryId),
+        CategoryID: String(categoryId),
         Subject: subject,
         Description: description,
         Priority: priority || "Medium",
@@ -607,7 +608,7 @@ export const fileCaseWithAdvocate = createAsyncThunk(
         newAssignments.push({
           AssignmentID: assignId,
           CaseID: newCaseId,
-          AssignedToUserID: Number(advocateUserId),
+          AssignedToUserID: String(advocateUserId),
           AssignedByUserID: uId,
           AssignedDate: timestamp,
         });
@@ -627,7 +628,7 @@ export const fileCaseWithAdvocate = createAsyncThunk(
         newComment = {
           CommentID: newCommentId,
           CaseID: newCaseId,
-          UserID: advocateUserId ? Number(advocateUserId) : uId,
+          UserID: advocateUserId ? String(advocateUserId) : uId,
           CommentText: triageNote,
           CreatedDate: timestamp,
         };
@@ -649,7 +650,7 @@ export const fileCaseWithAdvocate = createAsyncThunk(
       if (advocateUserId) {
         newNotifs.push({
           NotificationID: notifId + 1,
-          UserID: Number(advocateUserId),
+          UserID: String(advocateUserId),
           Message: `You have been auto-assigned Case #${newCaseId} ("${subject.substring(0, 30)}...") via AI triage.`,
           IsRead: false,
           CreatedDate: timestamp,

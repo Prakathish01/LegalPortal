@@ -20,6 +20,15 @@ namespace LegalPortal.API.Configuration
         public static string SlaConfigTable => Environment.GetEnvironmentVariable("SLA_CONFIG_TABLE") ?? "ep59SlaConfig";
         public static string AuditLogsTable => Environment.GetEnvironmentVariable("AUDIT_LOGS_TABLE") ?? "ep59AuditLogs";
         public static string RefreshTokensTable => Environment.GetEnvironmentVariable("REFRESH_TOKENS_TABLE") ?? "ep59RefreshTokens";
+
+        // New tables
+        public static string EscalationRulesTable => Environment.GetEnvironmentVariable("ESCALATION_RULES_TABLE") ?? "ep59EscalationRules";
+        public static string AIChatSessionsTable => Environment.GetEnvironmentVariable("AI_CHAT_SESSIONS_TABLE") ?? "ep59AIChatSessions";
+        public static string AIQueryLogTable => Environment.GetEnvironmentVariable("AI_QUERY_LOG_TABLE") ?? "ep59AIQueryLog";
+        public static string PolicyDocumentsTable => Environment.GetEnvironmentVariable("POLICY_DOCUMENTS_TABLE") ?? "ep59PolicyDocuments";
+        public static string HearingsTable => Environment.GetEnvironmentVariable("HEARINGS_TABLE") ?? "ep59Hearings";
+        public static string ICCMembersTable => Environment.GetEnvironmentVariable("ICC_MEMBERS_TABLE") ?? "ep59ICCMembers";
+
         public static string CountersTable => Environment.GetEnvironmentVariable("COUNTERS_TABLE") ?? "ep59Counters";
         public static string AwsRegion => Environment.GetEnvironmentVariable("AWS_REGION") ?? "eu-west-1";
     }

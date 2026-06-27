@@ -2,20 +2,20 @@ namespace LegalPortal.API.DTOs
 {
     public class AttachmentDto
     {
-        public int AttachmentID { get; set; }
-        public int CaseID { get; set; }
+        public string AttachmentID { get; set; } = string.Empty;
+        public string CaseID { get; set; } = string.Empty;
         public string FileName { get; set; } = string.Empty;
         public string FilePath { get; set; } = string.Empty;
-        public int UploadedBy { get; set; }
+        public string UploadedBy { get; set; } = string.Empty;
         public string UploadedByName { get; set; } = string.Empty;
         public string UploadedDate { get; set; } = string.Empty;
     }
 
     public class CreateAttachmentDto
     {
-        public int CaseID { get; set; }
+        public string CaseID { get; set; } = string.Empty;
         public string FileName { get; set; } = string.Empty;
         public string FilePath { get; set; } = string.Empty;
-        public int UploadedBy { get; set; }
+        public string UploadedBy { get; set; } = string.Empty;
     }
 }

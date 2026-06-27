@@ -1,17 +1,16 @@
 using Amazon.DynamoDBv2.DataModel;
-using LegalPortal.API.Helpers;
 
 namespace LegalPortal.API.Models
 {
     [DynamoDBTable("ep59Cases")]
     public class Case
     {
-        [DynamoDBHashKey(typeof(IntToStringConverter))]
-        public int CaseID { get; set; }
+        [DynamoDBHashKey]
+        public string CaseID { get; set; } = string.Empty;
         
-        public int UserID { get; set; }
+        public string? UserID { get; set; }
         
-        public int CategoryID { get; set; }
+        public string CategoryID { get; set; } = string.Empty;
         
         public string Subject { get; set; } = string.Empty;
         
@@ -25,7 +24,9 @@ namespace LegalPortal.API.Models
         
         public string? ClosedDate { get; set; }
 
-        public int? AssignedOfficialID { get; set; }
+        public string? AssignedOfficialID { get; set; }
+
+        public string? AssignedAt { get; set; }
 
         public string? DueDate { get; set; }
 
@@ -33,10 +34,26 @@ namespace LegalPortal.API.Models
 
         public bool IsAnonymous { get; set; }
 
+        public string? AnonymousTrackingToken { get; set; }
+
+        public string? SLABreachedAt { get; set; }
+
         public string? WithdrawalReason { get; set; }
 
-        public int? ClosedBy { get; set; }
+        public string? WithdrawnAt { get; set; }
+
+        public string? ClosedBy { get; set; }
 
         public int? SatisfactionScore { get; set; }
+
+        public string? SatisfactionComment { get; set; }
+
+        public string? Department { get; set; }
+
+        public string? IncidentDate { get; set; }
+
+        public string? UpdatedAt { get; set; }
+
+        public string? ClosedAt { get; set; }
     }
 }

@@ -1,13 +1,12 @@
 using Amazon.DynamoDBv2.DataModel;
-using LegalPortal.API.Helpers;
 
 namespace LegalPortal.API.Models
 {
     [DynamoDBTable("ep59Users")]
     public class User
     {
-        [DynamoDBHashKey(typeof(IntToStringConverter))]
-        public int UserID { get; set; }
+        [DynamoDBHashKey]
+        public string UserID { get; set; } = string.Empty;
         
         public string EmployeeID { get; set; } = string.Empty;
         
@@ -18,8 +17,12 @@ namespace LegalPortal.API.Models
         public string Phone { get; set; } = string.Empty;
         
         public string Department { get; set; } = string.Empty;
+
+        public string Designation { get; set; } = string.Empty;
         
-        public int RoleID { get; set; }
+        public string RoleID { get; set; } = string.Empty;
+
+        public string Role { get; set; } = string.Empty;
         
         public string Status { get; set; } = string.Empty;
         

@@ -5,9 +5,9 @@ namespace LegalPortal.API.Models
     [DynamoDBTable("ep59Officials")]
     public class Official
     {
-        public int OfficialID { get; set; }
-        
         [DynamoDBHashKey]
+        public string OfficialID { get; set; } = string.Empty;
+        
         public string StaffID { get; set; } = string.Empty;
         
         public string FullName { get; set; } = string.Empty;
@@ -20,7 +20,7 @@ namespace LegalPortal.API.Models
         
         public string Designation { get; set; } = string.Empty;
         
-        public int RoleID { get; set; }
+        public string RoleID { get; set; } = string.Empty;
         
         public string? Specialization { get; set; }
         

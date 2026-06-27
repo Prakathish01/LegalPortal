@@ -59,7 +59,7 @@ const NewCaseModal = ({ onClose, actingUserId }) => {
           }
 
           const userSelectedCat = categories.find(
-            (c) => c.CategoryID === Number(data.categoryId)
+            (c) => String(c.CategoryID) === String(data.categoryId)
           );
 
           const categoryMismatch =
@@ -127,7 +127,7 @@ const NewCaseModal = ({ onClose, actingUserId }) => {
 
         // 4. Check if user-selected category matches the RAG suggestion
         const userSelectedCat = categories.find(
-          (c) => c.CategoryID === Number(data.categoryId)
+          (c) => String(c.CategoryID) === String(data.categoryId)
         );
         const categoryMismatch =
           suggestedCategory &&
@@ -167,12 +167,12 @@ const NewCaseModal = ({ onClose, actingUserId }) => {
   const handleConfirmSubmit = async () => {
     setStep("submitting");
     try {
-      const finalCatId = ragResult?.suggestedCategory?.CategoryID || Number(categoryId);
+      const finalCatId = ragResult?.suggestedCategory?.CategoryID || String(categoryId);
       const finalPriority = ragResult?.suggestedPriority || priority;
 
       const caseId = await addCase({
         subject: subject.trim(),
-        categoryId: Number(finalCatId),
+        categoryId: String(finalCatId),
         priority: finalPriority,
         description: description.trim(),
         userId: actingUserId || currentUser?.UserID || 1,
@@ -573,7 +573,7 @@ const NewCaseModal = ({ onClose, actingUserId }) => {
                 </div>
                 <div style={{ fontSize: 12, color: "hsl(215, 15%, 45%)" }}>
                   <strong>Category:</strong>{" "}
-                  {categories.find((c) => c.CategoryID === Number(categoryId))
+                  {categories.find((c) => String(c.CategoryID) === String(categoryId))
                     ?.CategoryName || "—"}
                 </div>
                 <div style={{ fontSize: 12, color: "hsl(215, 15%, 45%)" }}>

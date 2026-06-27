@@ -27,20 +27,17 @@ namespace LegalPortal.API.Functions
             {
                 if (request.HttpMethod == "OPTIONS") return ResponseHelper.CreateOptionsResponse();
 
-                int? caseId = null;
-                int? commentId = null;
-
-                if (request.PathParameters != null && request.PathParameters.TryGetValue("id", out var idVal) && int.TryParse(idVal, out var parsedId))
+                string? idVal = null;
+                if (request.PathParameters != null && request.PathParameters.TryGetValue("id", out var tempVal))
                 {
-                    caseId = parsedId;
-                    commentId = parsedId;
+                    idVal = tempVal;
                 }
 
                 switch (request.HttpMethod)
                 {
                     case "GET":
-                        if (!caseId.HasValue) return ResponseHelper.CreateErrorResponse(400, "Case ID is required.");
-                        var list = await _commentService.GetByCaseIdAsync(caseId.Value);
+                        if (string.IsNullOrEmpty(idVal)) return ResponseHelper.CreateErrorResponse(400, "Case ID is required.");
+                        var list = await _commentService.GetByCaseIdAsync(idVal);
                         return ResponseHelper.CreateOkResponse("Comments retrieved successfully", list);
 
                     case "POST":
@@ -50,8 +47,8 @@ namespace LegalPortal.API.Functions
                         return ResponseHelper.CreateCreatedResponse("Comment posted successfully", created);
 
                     case "DELETE":
-                        if (!commentId.HasValue) return ResponseHelper.CreateErrorResponse(400, "Comment ID is required.");
-                        await _commentService.DeleteAsync(commentId.Value);
+                        if (string.IsNullOrEmpty(idVal)) return ResponseHelper.CreateErrorResponse(400, "Comment ID is required.");
+                        await _commentService.DeleteAsync(idVal);
                         return ResponseHelper.CreateOkResponse("Comment deleted successfully", (object?)null);
 
                     default:

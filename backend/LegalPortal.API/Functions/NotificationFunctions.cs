@@ -27,28 +27,27 @@ namespace LegalPortal.API.Functions
             {
                 if (request.HttpMethod == "OPTIONS") return ResponseHelper.CreateOptionsResponse();
 
-                int? notificationId = null;
-                // Parse /{id}/read
-                if (request.PathParameters != null && request.PathParameters.TryGetValue("id", out var val) && int.TryParse(val, out var parsedId))
+                string? notificationId = null;
+                if (request.PathParameters != null && request.PathParameters.TryGetValue("id", out var val))
                 {
-                    notificationId = parsedId;
+                    notificationId = val;
                 }
 
                 switch (request.HttpMethod)
                 {
                     case "GET":
-                        int? queryUserId = null;
-                        if (request.QueryStringParameters != null && request.QueryStringParameters.TryGetValue("userId", out var uIdStr) && int.TryParse(uIdStr, out var uId))
+                        string? queryUserId = null;
+                        if (request.QueryStringParameters != null && request.QueryStringParameters.TryGetValue("userId", out var uIdStr))
                         {
-                            queryUserId = uId;
+                            queryUserId = uIdStr;
                         }
 
-                        if (!queryUserId.HasValue)
+                        if (string.IsNullOrEmpty(queryUserId))
                         {
                             return ResponseHelper.CreateErrorResponse(400, "userId query parameter is required.");
                         }
 
-                        var list = await _notificationService.GetByUserIdAsync(queryUserId.Value);
+                        var list = await _notificationService.GetByUserIdAsync(queryUserId);
                         return ResponseHelper.CreateOkResponse("Notifications retrieved successfully", list);
 
                     case "POST":
@@ -58,14 +57,12 @@ namespace LegalPortal.API.Functions
                         return ResponseHelper.CreateCreatedResponse("Notification created successfully", created);
 
                     case "PUT":
-                        // Handles PUT /notifications/{id}/read
-                        if (!notificationId.HasValue) return ResponseHelper.CreateErrorResponse(400, "Notification ID is required.");
+                        if (string.IsNullOrEmpty(notificationId)) return ResponseHelper.CreateErrorResponse(400, "Notification ID is required.");
                         
-                        // We check if the path ends with /read (in request.Path or context)
                         bool isReadAction = request.Path.Contains("/read", StringComparison.OrdinalIgnoreCase);
                         if (!isReadAction) return ResponseHelper.CreateErrorResponse(400, "Invalid notification update action. Use PUT /notifications/{id}/read");
 
-                        await _notificationService.MarkAsReadAsync(notificationId.Value);
+                        await _notificationService.MarkAsReadAsync(notificationId);
                         return ResponseHelper.CreateOkResponse("Notification marked as read successfully", (object?)null);
 
                     default:

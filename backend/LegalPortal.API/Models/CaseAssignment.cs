@@ -8,27 +8,31 @@ namespace LegalPortal.API.Models
         [DynamoDBHashKey]
         public string AssignmentID { get; set; } = string.Empty;
         
-        public int CaseID { get; set; }
+        public string CaseID { get; set; } = string.Empty;
         
-        public int OfficialID { get; set; }
+        public string OfficialID { get; set; } = string.Empty;
         
-        public int AssignedByAdminID { get; set; }
+        public string AssignedByAdminID { get; set; } = string.Empty;
         
         public string AssignedAt { get; set; } = string.Empty;
 
-        public string HandoffNotes { get; set; } = string.Empty;
+        public bool IsActive { get; set; }
 
-        public int? TransferredFromOfficialID { get; set; }
+        public string? HandoffNotes { get; set; }
+
+        public string? TransferredFromOfficialID { get; set; }
+
+        public string? TransferredAt { get; set; }
 
         [DynamoDBIgnore]
-        public int AssignedToUserID 
+        public string AssignedToUserID 
         { 
             get => OfficialID; 
             set => OfficialID = value; 
         }
 
         [DynamoDBIgnore]
-        public int AssignedByUserID 
+        public string AssignedByUserID 
         { 
             get => AssignedByAdminID; 
             set => AssignedByAdminID = value; 

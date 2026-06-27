@@ -8,12 +8,18 @@ namespace LegalPortal.API.Models
         [DynamoDBHashKey]
         public string TokenHash { get; set; } = string.Empty;
 
-        public int UserID { get; set; }
+        public string UserID { get; set; } = string.Empty;
+
+        public string UserRole { get; set; } = string.Empty;
 
         public string IssuedAt { get; set; } = string.Empty;
 
-        public string ExpiresAt { get; set; } = string.Empty;
+        public long ExpiresAt { get; set; }
 
         public bool IsRevoked { get; set; }
+
+        public string? RevokedAt { get; set; }
+
+        public string? DeviceInfo { get; set; }
     }
 }

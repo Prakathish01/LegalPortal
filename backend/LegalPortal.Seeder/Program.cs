@@ -21,18 +21,18 @@ namespace LegalPortal.Seeder
             Console.WriteLine("Legal & Grievance Support Portal - Seeder Utility");
             Console.WriteLine("==================================================");
 
-            // 1. Initialize DynamoDB Client with Region fallback
+            // 1. Initialize DynamoDB Client
             var regionName = Environment.GetEnvironmentVariable("AWS_REGION") ?? "eu-west-1";
             var region = Amazon.RegionEndpoint.GetBySystemName(regionName);
             var client = new AmazonDynamoDBClient(region);
             var context = new DynamoDBContext(client);
 
-            // 2. Define Tables to Create
+            // 2. Define All 19 Tables to Create
             var tables = new List<(string Name, string HashKey, string HashKeyType)>
             {
                 (TableSettings.RolesTable, "RoleID", "String"),
                 (TableSettings.UsersTable, "UserID", "String"),
-                (TableSettings.OfficialsTable, "StaffID", "String"),
+                (TableSettings.OfficialsTable, "OfficialID", "String"),
                 (TableSettings.CasesTable, "CaseID", "String"),
                 (TableSettings.CategoriesTable, "CategoryID", "String"),
                 (TableSettings.CommentsTable, "CommentID", "String"),
@@ -41,12 +41,18 @@ namespace LegalPortal.Seeder
                 (TableSettings.AttachmentsTable, "AttachmentID", "String"),
                 (TableSettings.NotificationsTable, "NotificationID", "String"),
                 (TableSettings.WhistleblowerReportsTable, "ReportID", "String"),
-                (TableSettings.CountersTable, "SequenceName", "String"),
                 (TableSettings.CaseMessagesTable, "MessageID", "String"),
                 (TableSettings.CaseDocumentRequestsTable, "RequestID", "String"),
-                (TableSettings.SlaConfigTable, "CategoryID", "String"),
+                (TableSettings.SlaConfigTable, "ConfigID", "String"),
                 (TableSettings.AuditLogsTable, "LogID", "String"),
-                (TableSettings.RefreshTokensTable, "TokenHash", "String")
+                (TableSettings.RefreshTokensTable, "TokenHash", "String"),
+                (TableSettings.EscalationRulesTable, "RuleID", "String"),
+                (TableSettings.AIChatSessionsTable, "SessionID", "String"),
+                (TableSettings.AIQueryLogTable, "QueryID", "String"),
+                (TableSettings.PolicyDocumentsTable, "DocumentID", "String"),
+                (TableSettings.HearingsTable, "HearingID", "String"),
+                (TableSettings.ICCMembersTable, "MemberID", "String"),
+                (TableSettings.CountersTable, "SequenceName", "String")
             };
 
             // 3. Diagnostic Key Check for existing tables
@@ -67,47 +73,40 @@ namespace LegalPortal.Seeder
             }
             Console.WriteLine("--------------------------------\n");
 
-            // 3. Create Tables
+            // 4. Create Tables (with automatic recreate if partition keys are different)
             foreach (var table in tables)
             {
                 await CreateTableIfNotExistsAsync(client, table.Name, table.HashKey, table.HashKeyType);
             }
 
-            // 4. Wait for tables to become ACTIVE
+            // 5. Wait for tables to become ACTIVE
             foreach (var table in tables)
             {
                 await WaitForTableActiveAsync(client, table.Name);
             }
 
-            // 5. Locate grievanceData.json
+            // 6. Locate ep59_dynamodb_seed_data.json
             string jsonPath = ResolveSeedJsonPath();
             if (string.IsNullOrEmpty(jsonPath))
             {
-                Console.WriteLine("ERROR: Could not find grievanceData.json in the workspace.");
+                Console.WriteLine("ERROR: Could not find ep59_dynamodb_seed_data.json in the workspace.");
                 return;
             }
             Console.WriteLine($"Found seed data at: {jsonPath}");
 
-            // 6. Parse Seed Data
+            // 7. Parse Seed Data
             var jsonContent = File.ReadAllText(jsonPath);
             var seedData = JsonSerializer.Deserialize<SeedDataModel>(jsonContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
             if (seedData == null)
             {
-                Console.WriteLine("ERROR: Failed to deserialize grievanceData.json.");
+                Console.WriteLine("ERROR: Failed to deserialize seed data JSON.");
                 return;
             }
 
-            string officialsJsonPath = jsonPath.Replace("grievanceData.json", "officials.json");
-            if (File.Exists(officialsJsonPath))
-            {
-                var officialsContent = File.ReadAllText(officialsJsonPath);
-                var officials = JsonSerializer.Deserialize<List<Official>>(officialsContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                seedData.Officials = officials;
-                Console.WriteLine($"Found officials seed data at: {officialsJsonPath}");
-            }
+            // 8. Seed Tables
+            string testPasswordHash = PasswordHasher.HashPassword("password123");
 
-            // 7. Seed Tables
             Console.WriteLine("\nSeeding roles...");
             if (seedData.Roles != null)
             {
@@ -134,7 +133,6 @@ namespace LegalPortal.Seeder
             if (seedData.Users != null)
             {
                 var config = new DynamoDBOperationConfig { OverrideTableName = TableSettings.UsersTable };
-                string testPasswordHash = PasswordHasher.HashPassword("password123");
                 foreach (var item in seedData.Users)
                 {
                     item.Password = testPasswordHash;
@@ -147,7 +145,6 @@ namespace LegalPortal.Seeder
             if (seedData.Officials != null)
             {
                 var config = new DynamoDBOperationConfig { OverrideTableName = TableSettings.OfficialsTable };
-                string testPasswordHash = PasswordHasher.HashPassword("password123");
                 foreach (var item in seedData.Officials)
                 {
                     item.Password = testPasswordHash;
@@ -233,21 +230,141 @@ namespace LegalPortal.Seeder
                 Console.WriteLine($"Seeded {seedData.WhistleblowerReports.Count} whistleblower reports.");
             }
 
-            // 8. Seed Sequence Counters
+            Console.WriteLine("\nSeeding case messages...");
+            if (seedData.CaseMessages != null)
+            {
+                var config = new DynamoDBOperationConfig { OverrideTableName = TableSettings.CaseMessagesTable };
+                foreach (var item in seedData.CaseMessages)
+                {
+                    await context.SaveAsync(item, config);
+                }
+                Console.WriteLine($"Seeded {seedData.CaseMessages.Count} messages.");
+            }
+
+            Console.WriteLine("\nSeeding document requests...");
+            if (seedData.DocumentRequests != null)
+            {
+                var config = new DynamoDBOperationConfig { OverrideTableName = TableSettings.CaseDocumentRequestsTable };
+                foreach (var item in seedData.DocumentRequests)
+                {
+                    await context.SaveAsync(item, config);
+                }
+                Console.WriteLine($"Seeded {seedData.DocumentRequests.Count} document requests.");
+            }
+
+            Console.WriteLine("\nSeeding SLA config...");
+            if (seedData.SlaConfig != null)
+            {
+                var config = new DynamoDBOperationConfig { OverrideTableName = TableSettings.SlaConfigTable };
+                foreach (var item in seedData.SlaConfig)
+                {
+                    await context.SaveAsync(item, config);
+                }
+                Console.WriteLine($"Seeded {seedData.SlaConfig.Count} SLA config items.");
+            }
+
+            Console.WriteLine("\nSeeding audit logs...");
+            if (seedData.AuditLogs != null)
+            {
+                var config = new DynamoDBOperationConfig { OverrideTableName = TableSettings.AuditLogsTable };
+                foreach (var item in seedData.AuditLogs)
+                {
+                    await context.SaveAsync(item, config);
+                }
+                Console.WriteLine($"Seeded {seedData.AuditLogs.Count} audit logs.");
+            }
+
+            Console.WriteLine("\nSeeding refresh tokens...");
+            if (seedData.RefreshTokens != null)
+            {
+                var config = new DynamoDBOperationConfig { OverrideTableName = TableSettings.RefreshTokensTable };
+                foreach (var item in seedData.RefreshTokens)
+                {
+                    await context.SaveAsync(item, config);
+                }
+                Console.WriteLine($"Seeded {seedData.RefreshTokens.Count} refresh tokens.");
+            }
+
+            Console.WriteLine("\nSeeding escalation rules...");
+            if (seedData.EscalationRules != null)
+            {
+                var config = new DynamoDBOperationConfig { OverrideTableName = TableSettings.EscalationRulesTable };
+                foreach (var item in seedData.EscalationRules)
+                {
+                    await context.SaveAsync(item, config);
+                }
+                Console.WriteLine($"Seeded {seedData.EscalationRules.Count} escalation rules.");
+            }
+
+            Console.WriteLine("\nSeeding AI chat sessions...");
+            if (seedData.AIChatSessions != null)
+            {
+                var config = new DynamoDBOperationConfig { OverrideTableName = TableSettings.AIChatSessionsTable };
+                foreach (var item in seedData.AIChatSessions)
+                {
+                    await context.SaveAsync(item, config);
+                }
+                Console.WriteLine($"Seeded {seedData.AIChatSessions.Count} AI chat sessions.");
+            }
+
+            Console.WriteLine("\nSeeding AI query logs...");
+            if (seedData.AIQueryLogs != null)
+            {
+                var config = new DynamoDBOperationConfig { OverrideTableName = TableSettings.AIQueryLogTable };
+                foreach (var item in seedData.AIQueryLogs)
+                {
+                    await context.SaveAsync(item, config);
+                }
+                Console.WriteLine($"Seeded {seedData.AIQueryLogs.Count} AI query logs.");
+            }
+
+            Console.WriteLine("\nSeeding policy documents...");
+            if (seedData.PolicyDocuments != null)
+            {
+                var config = new DynamoDBOperationConfig { OverrideTableName = TableSettings.PolicyDocumentsTable };
+                foreach (var item in seedData.PolicyDocuments)
+                {
+                    await context.SaveAsync(item, config);
+                }
+                Console.WriteLine($"Seeded {seedData.PolicyDocuments.Count} policy documents.");
+            }
+
+            Console.WriteLine("\nSeeding hearings...");
+            if (seedData.Hearings != null)
+            {
+                var config = new DynamoDBOperationConfig { OverrideTableName = TableSettings.HearingsTable };
+                foreach (var item in seedData.Hearings)
+                {
+                    await context.SaveAsync(item, config);
+                }
+                Console.WriteLine($"Seeded {seedData.Hearings.Count} hearings.");
+            }
+
+            Console.WriteLine("\nSeeding ICC members...");
+            if (seedData.ICCMembers != null)
+            {
+                var config = new DynamoDBOperationConfig { OverrideTableName = TableSettings.ICCMembersTable };
+                foreach (var item in seedData.ICCMembers)
+                {
+                    await context.SaveAsync(item, config);
+                }
+                Console.WriteLine($"Seeded {seedData.ICCMembers.Count} ICC members.");
+            }
+
+            // 9. Seed Sequence Counters
             Console.WriteLine("\nInitializing sequence counters...");
             var countersConfig = new DynamoDBOperationConfig { OverrideTableName = TableSettings.CountersTable };
-            
             var counterSeeds = new List<SequenceCounter>
             {
-                new SequenceCounter { SequenceName = "RoleID", CurrentValue = seedData.Roles != null && seedData.Roles.Any() ? seedData.Roles.Max(x => x.RoleID) : 10 },
-                new SequenceCounter { SequenceName = "UserID", CurrentValue = seedData.Users != null && seedData.Users.Any() ? seedData.Users.Max(x => x.UserID) : 50 },
-                new SequenceCounter { SequenceName = "OfficialID", CurrentValue = seedData.Officials != null && seedData.Officials.Any() ? seedData.Officials.Max(x => x.OfficialID) : 50 },
-                new SequenceCounter { SequenceName = "CaseID", CurrentValue = seedData.Cases != null && seedData.Cases.Any() ? seedData.Cases.Max(x => x.CaseID) : 100 },
-                new SequenceCounter { SequenceName = "CategoryID", CurrentValue = seedData.Categories != null && seedData.Categories.Any() ? seedData.Categories.Max(x => x.CategoryID) : 20 },
-                new SequenceCounter { SequenceName = "CommentID", CurrentValue = seedData.Comments != null && seedData.Comments.Any() ? seedData.Comments.Max(x => x.CommentID) : 100 },
-                new SequenceCounter { SequenceName = "AttachmentID", CurrentValue = seedData.Attachments != null && seedData.Attachments.Any() ? seedData.Attachments.Max(x => x.AttachmentID) : 100 },
-                new SequenceCounter { SequenceName = "NotificationID", CurrentValue = seedData.Notifications != null && seedData.Notifications.Any() ? seedData.Notifications.Max(x => x.NotificationID) : 100 },
-                new SequenceCounter { SequenceName = "ReportID", CurrentValue = seedData.WhistleblowerReports != null && seedData.WhistleblowerReports.Any() ? seedData.WhistleblowerReports.Max(x => x.ReportID) : 20 }
+                new SequenceCounter { SequenceName = "RoleID", CurrentValue = 100 },
+                new SequenceCounter { SequenceName = "UserID", CurrentValue = 100 },
+                new SequenceCounter { SequenceName = "OfficialID", CurrentValue = 100 },
+                new SequenceCounter { SequenceName = "CaseID", CurrentValue = 100 },
+                new SequenceCounter { SequenceName = "CategoryID", CurrentValue = 100 },
+                new SequenceCounter { SequenceName = "CommentID", CurrentValue = 100 },
+                new SequenceCounter { SequenceName = "AttachmentID", CurrentValue = 100 },
+                new SequenceCounter { SequenceName = "NotificationID", CurrentValue = 100 },
+                new SequenceCounter { SequenceName = "ReportID", CurrentValue = 100 }
             };
 
             foreach (var counter in counterSeeds)
@@ -256,7 +373,7 @@ namespace LegalPortal.Seeder
                 Console.WriteLine($"Sequence counter '{counter.SequenceName}' initialized to {counter.CurrentValue}.");
             }
 
-            // 9. Fetch and Print API Gateway Endpoint
+            // 10. Fetch and Print API Gateway Endpoint
             try
             {
                 var apigwClient = new Amazon.APIGateway.AmazonAPIGatewayClient(region);
@@ -295,7 +412,31 @@ namespace LegalPortal.Seeder
             try
             {
                 var description = await client.DescribeTableAsync(tableName);
-                Console.WriteLine($"Table '{tableName}' already exists. Status: {description.Table.TableStatus}");
+                var existingHashKey = description.Table.KeySchema.FirstOrDefault(k => k.KeyType == KeyType.HASH)?.AttributeName;
+                
+                if (existingHashKey != hashKeyName)
+                {
+                    Console.WriteLine($"WARNING: Table '{tableName}' has PK '{existingHashKey}' but expected '{hashKeyName}'. Deleting table to recreate...");
+                    await client.DeleteTableAsync(tableName);
+                    
+                    Console.WriteLine($"Waiting for table '{tableName}' to be deleted...");
+                    while (true)
+                    {
+                        try
+                        {
+                            await client.DescribeTableAsync(tableName);
+                            await Task.Delay(1000);
+                        }
+                        catch (ResourceNotFoundException)
+                        {
+                            break;
+                        }
+                    }
+                    Console.WriteLine($"Table '{tableName}' deleted. Recreating...");
+                    throw new ResourceNotFoundException("Trigger recreate");
+                }
+
+                Console.WriteLine($"Table '{tableName}' already exists with correct PK '{hashKeyName}'. Status: {description.Table.TableStatus}");
                 return;
             }
             catch (ResourceNotFoundException)
@@ -310,7 +451,7 @@ namespace LegalPortal.Seeder
                     },
                     AttributeDefinitions = new List<AttributeDefinition>
                     {
-                        new AttributeDefinition(hashKeyName, hashKeyType == "Number" ? ScalarAttributeType.N : ScalarAttributeType.S)
+                        new AttributeDefinition(hashKeyName, ScalarAttributeType.S)
                     },
                     ProvisionedThroughput = new ProvisionedThroughput
                     {
@@ -350,12 +491,12 @@ namespace LegalPortal.Seeder
             string currentDir = Directory.GetCurrentDirectory();
             while (!string.IsNullOrEmpty(currentDir))
             {
-                var newPath = Path.Combine(currentDir, "frontend", "src", "data", "grievanceData.json");
+                var newPath = Path.Combine(currentDir, "frontend", "src", "data", "ep59_dynamodb_seed_data.json");
                 if (File.Exists(newPath))
                 {
                     return newPath;
                 }
-                var testPath = Path.Combine(currentDir, "src", "data", "grievanceData.json");
+                var testPath = Path.Combine(currentDir, "src", "data", "ep59_dynamodb_seed_data.json");
                 if (File.Exists(testPath))
                 {
                     return testPath;
@@ -368,16 +509,70 @@ namespace LegalPortal.Seeder
 
     public class SeedDataModel
     {
+        [System.Text.Json.Serialization.JsonPropertyName("ep59_Roles")]
         public List<Role>? Roles { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("ep59_Users")]
         public List<User>? Users { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("ep59_Categories")]
         public List<Category>? Categories { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("ep59_Cases")]
         public List<Case>? Cases { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("ep59_CaseAssignments")]
         public List<CaseAssignment>? CaseAssignments { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("ep59_CaseComments")]
         public List<Comment>? Comments { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("ep59_Attachments")]
         public List<Attachment>? Attachments { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("ep59_Notifications")]
         public List<Notification>? Notifications { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("ep59_CaseStatusHistory")]
         public List<CaseStatusHistory>? CaseStatusHistory { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("ep59_WhistleblowerReports")]
         public List<WhistleblowerReport>? WhistleblowerReports { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("ep59_Officials")]
         public List<Official>? Officials { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("ep59_CaseMessages")]
+        public List<CaseMessage>? CaseMessages { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("ep59_DocumentRequests")]
+        public List<CaseDocumentRequest>? DocumentRequests { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("ep59_SLAConfig")]
+        public List<SlaConfig>? SlaConfig { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("ep59_AuditLog")]
+        public List<AuditLog>? AuditLogs { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("ep59_RefreshTokens")]
+        public List<RefreshToken>? RefreshTokens { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("ep59_EscalationRules")]
+        public List<EscalationRule>? EscalationRules { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("ep59_AIChatSessions")]
+        public List<AIChatSession>? AIChatSessions { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("ep59_AIQueryLog")]
+        public List<AIQueryLog>? AIQueryLogs { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("ep59_PolicyDocuments")]
+        public List<PolicyDocument>? PolicyDocuments { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("ep59_Hearings")]
+        public List<Hearing>? Hearings { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("ep59_ICCMembers")]
+        public List<ICCMember>? ICCMembers { get; set; }
     }
 }

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * dataSource.js
  * ------------------------------------------------------------------
  * SINGLE SOURCE OF TRUTH for where app data comes from.
@@ -10,7 +10,7 @@
 
 export const USE_REMOTE = true;
 
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://i6pmbkq0rk.execute-api.us-east-1.amazonaws.com/Prod";
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://4x99btbdlc.execute-api.eu-west-1.amazonaws.com/Prod";
 
 function mapKeyToPascal(key) {
   if (key === "id") return "ID";
@@ -73,28 +73,30 @@ export async function apiRequest(path, { method = "GET", body, token } = {}) {
   return json;
 }
 
-/** Admin portal â€” full org visibility (RoleID 1, 8). */
-export const ADMIN_ROLE_IDS = [1, 8];
-
-/** Advocate / staff handler portal â€” assigned cases only. */
-export const ADVOCATE_ROLE_IDS = [2, 3, 4, 5, 7];
-
-/** User portal â€” employees who file grievances. */
-export const USER_ROLE_IDS = [6];
-
+export const ADMIN_ROLE_IDS = ["ADMIN", "AUDITOR", "1", "8"];
+export const ADVOCATE_ROLE_IDS = [
+  "ICC_PRESIDING_OFFICER",
+  "EMPANELLED_LAWYER",
+  "HR_MANAGER",
+  "LEGAL_MANAGER",
+  "LEGAL_AGENT",
+  "ICC_MEMBER",
+  "2", "3", "4", "5", "7"
+];
+export const USER_ROLE_IDS = ["Employee", "EMPLOYEE", "6"];
 export const STAFF_ROLE_IDS = [...ADMIN_ROLE_IDS, ...ADVOCATE_ROLE_IDS];
 
 export const resolvePortalType = (roleId) => {
-  const id = Number(roleId);
-  if (ADMIN_ROLE_IDS.includes(id)) return "admin";
-  if (ADVOCATE_ROLE_IDS.includes(id)) return "advocate";
+  const role = String(roleId || "").toUpperCase();
+  if (ADMIN_ROLE_IDS.map(r => String(r).toUpperCase()).includes(role)) return "admin";
+  if (ADVOCATE_ROLE_IDS.map(r => String(r).toUpperCase()).includes(role)) return "advocate";
   return "user";
 };
 
-export const isAdminRole = (roleId) => ADMIN_ROLE_IDS.includes(Number(roleId));
-export const isAdvocateRole = (roleId) => ADVOCATE_ROLE_IDS.includes(Number(roleId));
-export const isStaffRole = (roleId) => STAFF_ROLE_IDS.includes(Number(roleId));
-export const isUserRole = (roleId) => USER_ROLE_IDS.includes(Number(roleId));
+export const isAdminRole = (roleId) => ADMIN_ROLE_IDS.map(r => String(r).toUpperCase()).includes(String(roleId || "").toUpperCase());
+export const isAdvocateRole = (roleId) => ADVOCATE_ROLE_IDS.map(r => String(r).toUpperCase()).includes(String(roleId || "").toUpperCase());
+export const isStaffRole = (roleId) => STAFF_ROLE_IDS.map(r => String(r).toUpperCase()).includes(String(roleId || "").toUpperCase());
+export const isUserRole = (roleId) => USER_ROLE_IDS.map(r => String(r).toUpperCase()).includes(String(roleId || "").toUpperCase());
 
 /**
  * Staff login â€” officials table (StaffID or Email + password).
