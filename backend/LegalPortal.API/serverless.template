@@ -1,0 +1,495 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Transform": "AWS::Serverless-2016-10-31",
+  "Description": "An AWS Serverless Application for the Legal & Grievance Support Portal Backend.",
+  "Parameters": {
+    "OfficialsTableName": {
+      "Type": "String",
+      "Default": "ep59Officials",
+      "Description": "DynamoDB table for Officials"
+    },
+    "UsersTableName": {
+      "Type": "String",
+      "Default": "ep59Users",
+      "Description": "DynamoDB table for Users"
+    },
+    "RolesTableName": {
+      "Type": "String",
+      "Default": "ep59Roles",
+      "Description": "DynamoDB table for Roles"
+    },
+    "CasesTableName": {
+      "Type": "String",
+      "Default": "ep59Cases",
+      "Description": "DynamoDB table for Cases"
+    },
+    "CategoriesTableName": {
+      "Type": "String",
+      "Default": "ep59Categories",
+      "Description": "DynamoDB table for Categories"
+    },
+    "CommentsTableName": {
+      "Type": "String",
+      "Default": "ep59Comments",
+      "Description": "DynamoDB table for Comments"
+    },
+    "CaseAssignmentsTableName": {
+      "Type": "String",
+      "Default": "ep59CaseAssignments",
+      "Description": "DynamoDB table for Case Assignments"
+    },
+    "CaseStatusHistoryTableName": {
+      "Type": "String",
+      "Default": "ep59CaseStatusHistory",
+      "Description": "DynamoDB table for Case Status History"
+    },
+    "AttachmentsTableName": {
+      "Type": "String",
+      "Default": "ep59Attachments",
+      "Description": "DynamoDB table for Attachments"
+    },
+    "NotificationsTableName": {
+      "Type": "String",
+      "Default": "ep59Notifications",
+      "Description": "DynamoDB table for Notifications"
+    },
+    "WhistleblowerReportsTableName": {
+      "Type": "String",
+      "Default": "ep59WhistleblowerReports",
+      "Description": "DynamoDB table for Whistleblower Reports"
+    },
+    "CountersTableName": {
+      "Type": "String",
+      "Default": "ep59Counters",
+      "Description": "DynamoDB table for Atomic Counters"
+    },
+    "KnowledgeBaseId": {
+      "Type": "String",
+      "Default": "TCY7VWUYPP",
+      "Description": "Amazon Bedrock Knowledge Base ID for ep59 policy retrieval"
+    }
+  },
+  "Globals": {
+    "Api": {
+      "Cors": {
+        "AllowMethods": "'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT'",
+        "AllowHeaders": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+        "AllowOrigin": "'*'"
+      }
+    },
+    "Function": {
+      "Runtime": "dotnet8",
+      "Timeout": 30,
+      "MemorySize": 256,
+      "Environment": {
+        "Variables": {
+          "OFFICIALS_TABLE": { "Ref": "OfficialsTableName" },
+          "USERS_TABLE": { "Ref": "UsersTableName" },
+          "ROLES_TABLE": { "Ref": "RolesTableName" },
+          "CASES_TABLE": { "Ref": "CasesTableName" },
+          "CATEGORIES_TABLE": { "Ref": "CategoriesTableName" },
+          "COMMENTS_TABLE": { "Ref": "CommentsTableName" },
+          "CASE_ASSIGNMENTS_TABLE": { "Ref": "CaseAssignmentsTableName" },
+          "CASE_STATUS_HISTORY_TABLE": { "Ref": "CaseStatusHistoryTableName" },
+          "ATTACHMENTS_TABLE": { "Ref": "AttachmentsTableName" },
+          "NOTIFICATIONS_TABLE": { "Ref": "NotificationsTableName" },
+          "WHISTLEBLOWER_REPORTS_TABLE": { "Ref": "WhistleblowerReportsTableName" },
+          "COUNTERS_TABLE": { "Ref": "CountersTableName" },          "KNOWLEDGE_BASE_ID": { "Ref": "KnowledgeBaseId" },
+          "BEDROCK_KNOWLEDGE_BASE_ID": { "Ref": "KnowledgeBaseId" }
+        }
+      }
+    }
+  },
+  "Resources": {
+    "ApiGatewayRouterFunction": {
+      "Type": "AWS::Serverless::Function",
+      "Properties": {
+        "Handler": "LegalPortal.API::LegalPortal.API.Functions.ApiGatewayRouter::HandleRequest",
+        "Policies": [ "AmazonDynamoDBFullAccess" ],
+        "Events": {
+          "PostLogin": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/login",
+              "Method": "POST"
+            }
+          },
+          "GetOfficials": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/officials",
+              "Method": "GET"
+            }
+          },
+          "GetOfficialSingle": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/officials/{staffId}",
+              "Method": "GET"
+            }
+          },
+          "PostOfficials": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/officials",
+              "Method": "POST"
+            }
+          },
+          "PutOfficials": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/officials/{staffId}",
+              "Method": "PUT"
+            }
+          },
+          "DeleteOfficials": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/officials/{staffId}",
+              "Method": "DELETE"
+            }
+          },
+          "GetUsers": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/users",
+              "Method": "GET"
+            }
+          },
+          "GetUserSingle": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/users/{id}",
+              "Method": "GET"
+            }
+          },
+          "PostUsers": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/users",
+              "Method": "POST"
+            }
+          },
+          "PutUsers": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/users/{id}",
+              "Method": "PUT"
+            }
+          },
+          "DeleteUsers": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/users/{id}",
+              "Method": "DELETE"
+            }
+          },
+          "GetComplaints": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/complaints",
+              "Method": "GET"
+            }
+          },
+          "GetComplaintSingle": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/complaints/{caseId}",
+              "Method": "GET"
+            }
+          },
+          "PostComplaints": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/complaints",
+              "Method": "POST"
+            }
+          },
+          "PutComplaints": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/complaints/{caseId}",
+              "Method": "PUT"
+            }
+          },
+          "DeleteComplaints": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/complaints/{caseId}",
+              "Method": "DELETE"
+            }
+          },
+          "GetCategories": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/categories",
+              "Method": "GET"
+            }
+          },
+          "PostCategories": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/categories",
+              "Method": "POST"
+            }
+          },
+          "PutCategories": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/categories/{id}",
+              "Method": "PUT"
+            }
+          },
+          "DeleteCategories": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/categories/{id}",
+              "Method": "DELETE"
+            }
+          },
+          "GetCommentsByCase": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/comments/{id}",
+              "Method": "GET"
+            }
+          },
+          "PostComments": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/comments",
+              "Method": "POST"
+            }
+          },
+          "DeleteComments": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/comments/{id}",
+              "Method": "DELETE"
+            }
+          },
+          "GetAttachmentsByCase": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/attachments/{id}",
+              "Method": "GET"
+            }
+          },
+          "PostAttachments": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/attachments",
+              "Method": "POST"
+            }
+          },
+          "DeleteAttachments": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/attachments/{id}",
+              "Method": "DELETE"
+            }
+          },
+          "GetAssignments": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/assignments",
+              "Method": "GET"
+            }
+          },
+          "GetAssignmentSingle": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/assignments/{id}",
+              "Method": "GET"
+            }
+          },
+          "PostAssignments": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/assignments",
+              "Method": "POST"
+            }
+          },
+          "PutAssignments": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/assignments/{id}",
+              "Method": "PUT"
+            }
+          },
+          "GetNotifications": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/notifications",
+              "Method": "GET"
+            }
+          },
+          "PostNotifications": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/notifications",
+              "Method": "POST"
+            }
+          },
+          "PutNotificationsMarkRead": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/notifications/{id}/read",
+              "Method": "PUT"
+            }
+          },
+          "PutStatus": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/status",
+              "Method": "PUT"
+            }
+          },
+          "GetWhistleblowerSingle": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/whistleblower/{referenceNumber}",
+              "Method": "GET"
+            }
+          },
+          "GetWhistleblowerList": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/whistleblower",
+              "Method": "GET"
+            }
+          },
+          "PostWhistleblower": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/whistleblower",
+              "Method": "POST"
+            }
+          }
+        }
+      }
+    },
+
+    "Ep59LambdaRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": "ep59-lambda-role",
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "ManagedPolicyArns": [
+          "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+          "arn:aws:iam::aws:policy/AmazonBedrockFullAccess",
+          "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+        ],
+        "Policies": [
+          {
+            "PolicyName": "ep59-lambda-code-modification-policy",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "lambda:GetFunction",
+                    "lambda:UpdateFunctionCode"
+                  ],
+                  "Resource": "arn:aws:lambda:*:*:function:ep59-*"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "Ep59AiResponseFunction": {
+      "Type": "AWS::Serverless::Function",
+      "Properties": {
+        "FunctionName": "ep59-ai-response-lambda",
+        "Handler": "ai_response.handler",
+        "Runtime": "python3.11",
+        "CodeUri": "../Ep59RagLambdas",
+        "Role": { "Fn::GetAtt": [ "Ep59LambdaRole", "Arn" ] },
+        "Timeout": 60,
+        "MemorySize": 256,
+        "Environment": {
+          "Variables": {
+            "BEDROCK_KNOWLEDGE_BASE_ID": { "Ref": "KnowledgeBaseId" }
+          }
+        },
+        "Events": {
+          "PostAiResponse": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/ai/response",
+              "Method": "POST"
+            }
+          }
+        }
+      }
+    },
+    "Ep59AssignLawyerFunction": {
+      "Type": "AWS::Serverless::Function",
+      "Properties": {
+        "FunctionName": "ep59-assign-lawyer-lambda",
+        "Handler": "assign_lawyer.handler",
+        "Runtime": "python3.11",
+        "CodeUri": "../Ep59RagLambdas",
+        "Role": { "Fn::GetAtt": [ "Ep59LambdaRole", "Arn" ] },
+        "Timeout": 60,
+        "MemorySize": 256,
+        "Environment": {
+          "Variables": {
+            "BEDROCK_KNOWLEDGE_BASE_ID": { "Ref": "KnowledgeBaseId" }
+          }
+        },
+        "Events": {
+          "PostAiTriage": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/ai/triage",
+              "Method": "POST"
+            }
+          }
+        }
+      }
+    },
+    "Ep59CodeGeneratorFunction": {
+      "Type": "AWS::Serverless::Function",
+      "Properties": {
+        "FunctionName": "ep59-code-generator-lambda",
+        "Handler": "code_generator.handler",
+        "Runtime": "python3.11",
+        "CodeUri": "../Ep59RagLambdas",
+        "Role": { "Fn::GetAtt": [ "Ep59LambdaRole", "Arn" ] },
+        "Timeout": 60,
+        "MemorySize": 256,
+        "Environment": {
+          "Variables": {
+            "BEDROCK_KNOWLEDGE_BASE_ID": { "Ref": "KnowledgeBaseId" }
+          }
+        },
+        "Events": {
+          "PostAiGenerator": {
+            "Type": "Api",
+            "Properties": {
+              "Path": "/ai/generator",
+              "Method": "POST"
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+

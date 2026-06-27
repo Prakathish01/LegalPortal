@@ -1,0 +1,314 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+:root {
+  /* Design Tokens */
+  --color-navy: hsl(218, 60%, 15%);
+  --color-navy-dark: hsl(218, 60%, 10%);
+  --color-navy-light: hsl(218, 45%, 22%);
+  --color-blue: hsl(217, 91%, 56%);
+  --color-blue-hover: hsl(217, 91%, 48%);
+  --color-green: hsl(142, 72%, 29%);
+  --color-red: hsl(0, 72%, 50%);
+  --color-slate-bg: hsl(210, 40%, 98%);
+  
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --transition-fast: 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-normal: 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+}
+
+/* Base Styles */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  font-family: var(--font-sans);
+  background-color: var(--color-slate-bg);
+  color: var(--color-navy-dark);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 99px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+/* Keyframes Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleUp {
+  from { transform: scale(0.96); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes fadeInUp {
+  from { transform: translateY(10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.08); opacity: 0.95; }
+}
+
+/* Utility Animations classes */
+.fadeIn {
+  animation: fadeIn var(--transition-normal);
+}
+
+/* Interactive Element Styles */
+.nav-btn:hover {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  color: #fff !important;
+}
+
+.notif-btn:hover {
+  background-color: #F1F5F9 !important;
+}
+
+.notif-item:hover {
+  background-color: #F8FAFC !important;
+}
+
+.kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md) !important;
+  border-color: #CBD5E1 !important;
+}
+
+.recent-case-row:hover {
+  background-color: #EFF6FF !important;
+  border-color: #BFDBFE !important;
+}
+
+.table-row-hover:hover {
+  background-color: #EFF6FF !important;
+}
+
+.user-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md) !important;
+  border-color: #CBD5E1 !important;
+}
+
+.wb-card:hover {
+  border-color: #CBD5E1 !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+.btn-hover-glow:hover {
+  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4) !important;
+  filter: brightness(1.03);
+}
+
+/* Input Fields Focus */
+input:focus, select:focus, textarea:focus {
+  border-color: var(--color-blue) !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
+}
+
+/* Dark login form controls — avoids OS white dropdown/popup on Windows */
+.login-dark-input {
+  color-scheme: dark;
+}
+
+.login-dark-input::placeholder {
+  color: hsl(217, 20%, 45%);
+}
+
+/* Layout Responsiveness helpers */
+@media (max-width: 1024px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .case-detail-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: 72px !important;
+    padding-bottom: 12px !important;
+  }
+  
+  /* Hide the brand name, description, dividers, and details on mobile */
+  .sidebar .sidebar-logo-text,
+  .sidebar .sidebar-divider,
+  .sidebar .profile-details {
+    display: none !important;
+  }
+
+  /* Center the branding icon */
+  .sidebar .sidebar-brand {
+    padding: 20px 0 !important;
+    justify-content: center !important;
+  }
+  
+  /* Hide button labels and badges, keep only icons */
+  .sidebar button .sidebar-btn-label,
+  .sidebar button .sidebar-badge {
+    display: none !important;
+  }
+  
+  /* Center the button icons and remove padding/margins */
+  .sidebar button {
+    justify-content: center !important;
+    padding: 12px 0 !important;
+    gap: 0 !important;
+    border-left: 3px solid transparent !important;
+  }
+
+  /* Adjust profile container style for collapsed state */
+  .sidebar .sidebar-profile-box {
+    flex-direction: column !important;
+    gap: 8px !important;
+    padding: 8px !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+}
+
+/* Premium Spinner and Loading styles */
+.spinner-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.premium-spinner {
+  width: 56px;
+  height: 56px;
+  border: 4.5px solid rgba(59, 130, 246, 0.1);
+  border-left-color: var(--color-blue);
+  border-top-color: var(--color-blue);
+  border-radius: 50%;
+  animation: spin 0.9s cubic-bezier(0.55, 0.055, 0.675, 0.19) infinite;
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.1);
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── In-App Data Loading Overlay (post-login) ────────────────────── */
+.data-loading-overlay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  animation: fadeIn 0.35s ease-out;
+  gap: 0;
+}
+
+.data-loading-card {
+  background: #fff;
+  border: 1px solid #E5E7EB;
+  border-radius: 20px;
+  padding: 48px 56px;
+  text-align: center;
+  box-shadow: 0 8px 30px rgba(15, 31, 61, 0.06);
+  max-width: 420px;
+  width: 100%;
+}
+
+.data-loading-icon {
+  font-size: 44px;
+  margin-bottom: 20px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.data-loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3.5px solid rgba(59, 130, 246, 0.12);
+  border-left-color: var(--color-blue);
+  border-top-color: var(--color-blue);
+  border-radius: 50%;
+  animation: spin 0.85s cubic-bezier(0.55, 0.055, 0.675, 0.19) infinite;
+  margin: 0 auto 20px;
+}
+
+.data-loading-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--color-navy-dark);
+  margin: 0 0 6px;
+  letter-spacing: -0.01em;
+}
+
+.data-loading-subtitle {
+  font-size: 12.5px;
+  color: hsl(215, 10%, 55%);
+  margin: 0 0 28px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+/* Skeleton rows below the message */
+.skeleton-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.skeleton-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.skeleton-bar {
+  height: 12px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.skeleton-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+

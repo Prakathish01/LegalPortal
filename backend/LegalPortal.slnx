@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="LegalPortal.API/LegalPortal.API.csproj" />
+  <Project Path="LegalPortal.Seeder/LegalPortal.Seeder.csproj" />
+</Solution>
